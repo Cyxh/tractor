@@ -246,6 +246,9 @@ const App: React.FC = () => {
         </div>
       );
     }
+    // Room data cleared but displayedScreen hasn't updated yet — render nothing
+    // to avoid a one-frame flash of the lobby at full opacity
+    return null;
   }
 
   return (
