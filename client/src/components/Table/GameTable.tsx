@@ -795,7 +795,7 @@ const GameTable: React.FC<GameTableProps> = ({
                     {trumpCategoryCards.map((card, idx) => {
                       const cid = cardId(card);
                       return (
-                        <div key={cid} className={`hand-card-wrapper ${newCardIds.has(cid) ? 'card-deal-in' : ''}`}>
+                        <div key={cid} className={`hand-card-wrapper ${newCardIds.has(cid) ? 'card-deal-in-trump' : ''}`}>
                           <CardComponent
                             card={card}
                             selected={selectedCards.some(c => cardId(c) === cid)}
