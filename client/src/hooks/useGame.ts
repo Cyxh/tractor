@@ -120,7 +120,12 @@ export function useGame(ws: { send: (msg: any) => void; on: (type: string, handl
 
     // If we have a current room, rejoin directly (fastest path for reconnection)
     if (roomId && playerName) {
+      console.log('[REJOIN] Sending rejoin_room:', roomId, playerName);
       ws.send({ type: 'rejoin_room', payload: { roomId, playerName } });
+      // Also request state as fallback in case rejoin response is delayed
+      setTimeout(() => {
+        ws.send({ type: 'request_state', payload: {} });
+      }, 500);
       return;
     }
 

@@ -125,19 +125,30 @@ export class Room {
     this.allDisconnectedAt = null;
     // Update id if rejoining by name
     if (player.id !== id) {
+      const oldId = player.id;
       // Update game state references
       if (this.game) {
-        const gamePlayer = this.game.state.players.find(p => p.id === player.id);
+        const gamePlayer = this.game.state.players.find(p => p.id === oldId);
         if (gamePlayer) gamePlayer.id = id;
-        const hand = this.game.state.hands[player.id];
+        const hand = this.game.state.hands[oldId];
         if (hand) {
           this.game.state.hands[id] = hand;
-          delete this.game.state.hands[player.id];
+          delete this.game.state.hands[oldId];
         }
-        if (this.game.state.defendingTeam.has(player.id)) {
-          this.game.state.defendingTeam.delete(player.id);
+        if (this.game.state.defendingTeam.has(oldId)) {
+          this.game.state.defendingTeam.delete(oldId);
           this.game.state.defendingTeam.add(id);
         }
+      }
+      // Update dev mode references
+      if (this.devRealPlayerId === oldId) {
+        this.devRealPlayerId = id;
+      }
+      if (this.devPlayingAs === oldId) {
+        this.devPlayingAs = id;
+      }
+      if (this.hostId === oldId) {
+        this.hostId = id;
       }
       player.id = id;
     }

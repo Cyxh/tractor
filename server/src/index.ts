@@ -249,6 +249,22 @@ wss.on('connection', (ws: WebSocket) => {
           send({ type: 'error', payload: { message: 'Room not found' } });
           return;
         }
+        // If a disconnected player with this name exists, rejoin them instead of adding new
+        const disconnectedPlayer = room.players.find(p => p.name === msg.payload.playerName && !p.connected);
+        if (disconnectedPlayer) {
+          const success = room.rejoinPlayer(playerId, msg.payload.playerName, ws);
+          if (success) {
+            currentRoomId = room.id;
+            playerRooms.set(playerId, room.id);
+            const acctRejoin = playerAccounts.get(playerId);
+            if (acctRejoin) setAccountRoom(acctRejoin, room.id, msg.payload.playerName);
+            send({ type: 'room_joined', payload: { roomId: room.id, playerId } });
+            sendRoomUpdate(room.id);
+            room.broadcastState();
+            broadcastRoomList();
+            break;
+          }
+        }
         if (!room.addPlayer(playerId, msg.payload.playerName, ws)) {
           send({ type: 'error', payload: { message: 'Could not join room' } });
           return;
@@ -272,16 +288,21 @@ wss.on('connection', (ws: WebSocket) => {
       }
 
       case 'rejoin_room': {
+        console.log(`[REJOIN] Player ${playerId} attempting rejoin: room=${msg.payload.roomId}, name=${msg.payload.playerName}`);
         const room = roomManager.getRoom(msg.payload.roomId);
         if (!room) {
+          console.log(`[REJOIN] Room ${msg.payload.roomId} not found, searching by name...`);
           // Try to find room by player name
           const found = roomManager.findRoomByPlayerName(msg.payload.playerName);
           if (!found) {
+            console.log(`[REJOIN] No room found for player name ${msg.payload.playerName}`);
             send({ type: 'error', payload: { message: 'Room not found or cannot rejoin' } });
             return;
           }
+          console.log(`[REJOIN] Found room ${found.room.id} by name`);
           const success = found.room.rejoinPlayer(playerId, msg.payload.playerName, ws);
           if (!success) {
+            console.log(`[REJOIN] rejoinPlayer failed for room ${found.room.id}`);
             send({ type: 'error', payload: { message: 'Cannot rejoin room' } });
             return;
           }
@@ -293,11 +314,14 @@ wss.on('connection', (ws: WebSocket) => {
           break;
         }
 
+        console.log(`[REJOIN] Room found. Players: ${room.players.map(p => `${p.name}(id=${p.id},conn=${p.connected})`).join(', ')}`);
         const success = room.rejoinPlayer(playerId, msg.payload.playerName, ws);
         if (!success) {
+          console.log(`[REJOIN] rejoinPlayer failed — no player matching id=${playerId} or name=${msg.payload.playerName}`);
           send({ type: 'error', payload: { message: 'Cannot rejoin room' } });
           return;
         }
+        console.log(`[REJOIN] Success! Player ${playerId} rejoined room ${room.id}`);
         currentRoomId = room.id;
         playerRooms.set(playerId, room.id);
         send({ type: 'room_joined', payload: { roomId: room.id, playerId } });
@@ -634,10 +658,12 @@ wss.on('connection', (ws: WebSocket) => {
   });
 
   ws.on('close', () => {
+    console.log(`[WS] Player ${playerId} disconnected, room=${currentRoomId}`);
     if (currentRoomId) {
       const room = roomManager.getRoom(currentRoomId);
       if (room) {
         room.removePlayer(playerId);
+        console.log(`[WS] Room ${currentRoomId}: allDisconnected=${room.allDisconnected()}, players=${room.players.map(p => `${p.name}(${p.connected})`).join(',')}`);
         // Don't immediately remove room — let periodic cleanup handle it
         // so disconnected players have time to rejoin
         sendRoomUpdate(currentRoomId);
