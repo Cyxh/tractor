@@ -706,6 +706,12 @@ const LobbyScreen: React.FC<LobbyScreenProps> = ({
           </div>
         </div>
       </div>
+      <div className="lobby-footer">
+        <span className="lobby-footer-left">
+          If you liked this, consider buying Revin a boba — <a href="https://venmo.com/revin-jun" target="_blank" rel="noopener noreferrer">@revin-jun</a> on Venmo
+        </span>
+        <span className="lobby-footer-right">Patch 1.1.0</span>
+      </div>
     </div>
   );
 };
