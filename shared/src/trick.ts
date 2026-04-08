@@ -195,19 +195,8 @@ function matchObligation(
       remaining--;
     }
 
-    // Fill remaining with singles if needed
-    if (matched.length < component.cards.length) {
-      const used = new Set(matched.map(c => `${c.kind === 'joker' ? c.jokerType : c.kind === 'suited' ? `${c.suit}${c.rank}` : ''}_${c.deckIndex}`));
-      for (const c of available) {
-        if (matched.length >= component.cards.length) break;
-        const key = `${c.kind === 'joker' ? c.jokerType : c.kind === 'suited' ? `${c.suit}${c.rank}` : ''}_${c.deckIndex}`;
-        if (!used.has(key)) {
-          matched.push(c);
-          used.add(key);
-        }
-      }
-    }
-
+    // Only return the format-matched cards (pairs/groups) as obligated.
+    // Remaining slots can be filled with any cards from the led suit.
     return matched;
   }
 
