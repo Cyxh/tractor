@@ -8,6 +8,43 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const DATA_DIR = join(__dirname, '..', '..', 'data');
 const ACCOUNTS_FILE = join(DATA_DIR, 'accounts.json');
 
+export interface PlayerStats {
+  gamesPlayed: number;
+  gamesWon: number;
+  roundsPlayed: number;
+  roundsWonAsDefender: number;
+  roundsWonAsAttacker: number;
+  tricksPlayed: number;
+  tricksWon: number;
+  totalPointsScored: number;
+  bidsMade: number;
+  singlesPlayed: number;
+  pairsPlayed: number;
+  tractorsPlayed: number;
+  throwPenalties: number;
+  throwPenaltyPoints: number;
+  friendsRevealed: number;
+  timesAsLeader: number;
+  timesDefending: number;
+  timesAttacking: number;
+  ranksAdvanced: number;
+  highestTrickPoints: number;
+  longestTractor: number; // longest tractor length played
+  kittyMultipliersEarned: number;
+  chatMessagesSent: number;
+}
+
+const defaultStats: PlayerStats = {
+  gamesPlayed: 0, gamesWon: 0,
+  roundsPlayed: 0, roundsWonAsDefender: 0, roundsWonAsAttacker: 0,
+  tricksPlayed: 0, tricksWon: 0, totalPointsScored: 0,
+  bidsMade: 0, singlesPlayed: 0, pairsPlayed: 0, tractorsPlayed: 0,
+  throwPenalties: 0, throwPenaltyPoints: 0,
+  friendsRevealed: 0, timesAsLeader: 0, timesDefending: 0, timesAttacking: 0,
+  ranksAdvanced: 0, highestTrickPoints: 0, longestTractor: 0,
+  kittyMultipliersEarned: 0, chatMessagesSent: 0,
+};
+
 interface Account {
   username: string;
   passwordHash: string;
@@ -19,6 +56,8 @@ interface Account {
   // Email (optional)
   email: string | null;
   emailVerified: boolean;
+  // Statistics
+  stats: PlayerStats;
 }
 
 interface TokenEntry {
@@ -128,6 +167,7 @@ export function register(username: string, password: string): { success: boolean
     currentPlayerName: null,
     email: null,
     emailVerified: false,
+    stats: { ...defaultStats },
   });
   saveAccounts();
 
@@ -381,4 +421,46 @@ export function resetPassword(email: string, code: string, newPassword: string):
   pendingResetCodes.delete(emailLower);
   saveAccounts();
   return { success: true };
+}
+
+// ===== STATISTICS =====
+
+export function getStats(username: string): PlayerStats {
+  const account = accounts.get(username.trim().toLowerCase());
+  if (!account) return { ...defaultStats };
+  // Ensure stats exist for older accounts
+  if (!account.stats) account.stats = { ...defaultStats };
+  return { ...account.stats };
+}
+
+export function updateStats(username: string, updates: Partial<PlayerStats>): void {
+  const account = accounts.get(username.trim().toLowerCase());
+  if (!account) return;
+  if (!account.stats) account.stats = { ...defaultStats };
+  for (const [key, value] of Object.entries(updates)) {
+    (account.stats as any)[key] = value;
+  }
+  saveAccounts();
+}
+
+export function incrementStats(username: string, increments: Partial<PlayerStats>): void {
+  const account = accounts.get(username.trim().toLowerCase());
+  if (!account) return;
+  if (!account.stats) account.stats = { ...defaultStats };
+  for (const [key, value] of Object.entries(increments)) {
+    (account.stats as any)[key] += value;
+  }
+  saveAccounts();
+}
+
+export function batchIncrementStats(usernames: string[], increments: Partial<PlayerStats>): void {
+  for (const username of usernames) {
+    const account = accounts.get(username.trim().toLowerCase());
+    if (!account) continue;
+    if (!account.stats) account.stats = { ...defaultStats };
+    for (const [key, value] of Object.entries(increments)) {
+      (account.stats as any)[key] += value;
+    }
+  }
+  saveAccounts();
 }

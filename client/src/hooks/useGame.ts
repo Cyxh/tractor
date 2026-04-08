@@ -293,6 +293,15 @@ export function useGame(ws: { send: (msg: any) => void; on: (type: string, handl
     } catch { return { error: 'Network error' }; }
   }, [authToken]);
 
+  const fetchStats = useCallback(async () => {
+    if (!authToken) return null;
+    try {
+      const res = await authFetch('/api/stats');
+      if (!res.ok) return null;
+      return await res.json();
+    } catch { return null; }
+  }, [authToken, authFetch]);
+
   const requestPasswordReset = useCallback(async (email: string): Promise<{ error?: string }> => {
     try {
       const res = await fetch('/api/request-password-reset', {
@@ -429,6 +438,7 @@ export function useGame(ws: { send: (msg: any) => void; on: (type: string, handl
     requestEmailVerification,
     verifyEmail,
     unlinkEmail,
+    fetchStats,
     requestPasswordReset,
     resetPassword,
     createRoom,

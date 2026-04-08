@@ -264,6 +264,7 @@ const App: React.FC = () => {
         onRequestEmailVerification={game.requestEmailVerification}
         onVerifyEmail={game.verifyEmail}
         onUnlinkEmail={game.unlinkEmail}
+        onGetStats={game.fetchStats}
         onRequestPasswordReset={game.requestPasswordReset}
         onResetPassword={game.resetPassword}
       />

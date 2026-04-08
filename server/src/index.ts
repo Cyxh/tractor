@@ -4,8 +4,8 @@ import { fileURLToPath } from 'url';
 import { createServer } from 'http';
 import { WebSocketServer, WebSocket } from 'ws';
 import { RoomManager } from './room.js';
-import { ClientMessage } from 'tractor-shared';
-import { register, login, validateToken, setAccountRoom, getAccountSession, changeUsername, changePassword, getAccountEmail, requestEmailVerification, verifyEmailCode, unlinkEmail, requestPasswordReset, resetPassword } from './accounts.js';
+import { ClientMessage, Card, decomposePlay, hasWonGame } from 'tractor-shared';
+import { register, login, validateToken, setAccountRoom, getAccountSession, changeUsername, changePassword, getAccountEmail, requestEmailVerification, verifyEmailCode, unlinkEmail, requestPasswordReset, resetPassword, getStats, incrementStats, updateStats } from './accounts.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -144,6 +144,14 @@ app.post('/api/reset-password', (req, res) => {
   const result = resetPassword(email, code, newPassword);
   if (!result.success) { res.status(400).json({ error: result.error }); return; }
   res.json({ success: true });
+});
+
+app.get('/api/stats', (req, res) => {
+  const token = req.headers.authorization?.replace('Bearer ', '');
+  if (!token) { res.status(401).json({ error: 'No token' }); return; }
+  const username = validateToken(token);
+  if (!username) { res.status(401).json({ error: 'Invalid token' }); return; }
+  res.json(getStats(username));
 });
 
 app.get('/api/me', (req, res) => {
@@ -352,7 +360,10 @@ wss.on('connection', (ws: WebSocket) => {
         const room = roomManager.getRoom(currentRoomId);
         if (!room) return;
         const result = room.handleBid(playerId, msg.payload.cards);
-        if (!result.success) {
+        if (result.success) {
+          const acct = playerAccounts.get(playerId);
+          if (acct) incrementStats(acct, { bidsMade: 1 });
+        } else {
           send({ type: 'error', payload: { message: result.reason || 'Invalid bid' } });
         }
         break;
@@ -421,9 +432,96 @@ wss.on('connection', (ws: WebSocket) => {
       case 'play_cards': {
         if (!currentRoomId) return;
         const room = roomManager.getRoom(currentRoomId);
-        if (!room) return;
+        if (!room || !room.game) return;
+        const prevPhase = room.game.state.phase;
+        const prevTrickCount = room.game.state.tricks.length;
         const result = room.handlePlayCards(playerId, msg.payload.cards);
-        if (!result.success) {
+        if (result.success) {
+          const acct = playerAccounts.get(playerId);
+          if (acct) {
+            // Track play types using decomposeTrickComponents from shared
+            const playedCards = msg.payload.cards as Card[];
+            const trumpInfo = room.game.state.trumpInfo;
+            const settings = room.game.state.settings;
+            try {
+              const components = decomposePlay(playedCards, trumpInfo, settings);
+              let singles = 0, pairs = 0, tractors = 0, longestTractor = 0;
+              for (const comp of components) {
+                if (comp.length > 1) {
+                  tractors++;
+                  if (comp.length > longestTractor) longestTractor = comp.length;
+                } else if (comp.groupSize >= 2) {
+                  pairs++;
+                } else {
+                  singles++;
+                }
+              }
+              const statsInc: any = { tricksPlayed: 1 };
+              if (singles > 0) statsInc.singlesPlayed = singles;
+              if (pairs > 0) statsInc.pairsPlayed = pairs;
+              if (tractors > 0) statsInc.tractorsPlayed = tractors;
+              incrementStats(acct, statsInc);
+              if (longestTractor > 0) {
+                const currentStats = getStats(acct);
+                if (longestTractor > currentStats.longestTractor) {
+                  updateStats(acct, { longestTractor });
+                }
+              }
+            } catch {
+              incrementStats(acct, { tricksPlayed: 1 });
+            }
+          }
+          // Check if a trick was completed (new trick added to list)
+          if (room.game.state.tricks.length > prevTrickCount) {
+            const lastTrick = room.game.state.tricks[room.game.state.tricks.length - 1];
+            if (lastTrick.winner !== undefined) {
+              const winnerPlayer = room.game.state.players[lastTrick.winner];
+              const winnerAcct = playerAccounts.get(winnerPlayer.id);
+              if (winnerAcct) {
+                const pts = lastTrick.points || 0;
+                incrementStats(winnerAcct, { tricksWon: 1, totalPointsScored: pts });
+                if (pts > 0) {
+                  const currentStats = getStats(winnerAcct);
+                  if (pts > currentStats.highestTrickPoints) {
+                    updateStats(winnerAcct, { highestTrickPoints: pts });
+                  }
+                }
+              }
+            }
+          }
+          // Check if round/game ended
+          const newPhase = room.game.state.phase;
+          if ((newPhase === GamePhase.Scoring || newPhase === GamePhase.GameOver) && prevPhase === GamePhase.Playing) {
+            // Round just ended — track round stats for all players
+            for (const p of room.game.state.players) {
+              const pAcct = playerAccounts.get(p.id);
+              if (!pAcct) continue;
+              const isDefending = room.game.state.defendingTeam.has(p.id);
+              const isLeader = room.game.state.players[room.game.state.currentLeaderIdx]?.id === p.id;
+              incrementStats(pAcct, {
+                roundsPlayed: 1,
+                ...(isDefending ? { timesDefending: 1 } : { timesAttacking: 1 }),
+                ...(isLeader ? { timesAsLeader: 1 } : {}),
+              });
+            }
+            if (newPhase === GamePhase.GameOver) {
+              for (const p of room.game.state.players) {
+                const pAcct = playerAccounts.get(p.id);
+                if (pAcct) {
+                  incrementStats(pAcct, { gamesPlayed: 1 });
+                  if (hasWonGame(p.rank, room.game.state.settings.maxRank)) {
+                    incrementStats(pAcct, { gamesWon: 1 });
+                  }
+                }
+              }
+            }
+          }
+        } else {
+          // Check for throw penalty
+          if (result.reason && result.reason.includes('penalty')) {
+            const acct = playerAccounts.get(playerId);
+            if (acct) incrementStats(acct, { throwPenalties: 1 });
+          }
           send({ type: 'error', payload: { message: result.reason || 'Invalid play' } });
         }
         break;
@@ -449,6 +547,8 @@ wss.on('connection', (ws: WebSocket) => {
         const chatMsg = room.addChatMessage(playerId, msg.payload.message);
         if (chatMsg) {
           room.broadcast({ type: 'chat', payload: chatMsg });
+          const acct = playerAccounts.get(playerId);
+          if (acct) incrementStats(acct, { chatMessagesSent: 1 });
         }
         break;
       }
