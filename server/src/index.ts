@@ -330,7 +330,15 @@ wss.on('connection', (ws: WebSocket) => {
         if (!currentRoomId) return;
         const room = roomManager.getRoom(currentRoomId);
         if (!room || playerId !== room.hostId) return;
-        const username = playerAccounts.get(playerId);
+        // Check playerAccounts first, fall back to token-based auth
+        let username = playerAccounts.get(playerId);
+        if (!username) {
+          const token = (msg as any).payload?.token;
+          if (token) {
+            username = validateToken(token) || undefined;
+            if (username) playerAccounts.set(playerId, username);
+          }
+        }
         if (username !== 'cyxh') {
           send({ type: 'error', payload: { message: 'Dev mode is not available for this account' } });
           return;

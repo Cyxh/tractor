@@ -410,8 +410,8 @@ export function useGame(ws: { send: (msg: any) => void; on: (type: string, handl
   }, [ws]);
 
   const toggleDevMode = useCallback(() => {
-    ws.send({ type: 'toggle_dev_mode', payload: {} });
-  }, [ws]);
+    ws.send({ type: 'toggle_dev_mode', payload: { token: authToken } });
+  }, [ws, authToken]);
 
   const devSwitchPlayer = useCallback((targetPlayerId: string) => {
     ws.send({ type: 'dev_switch_player', payload: { targetPlayerId } });
