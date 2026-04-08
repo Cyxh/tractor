@@ -493,7 +493,7 @@
   flex-wrap: nowrap;
   overflow-x: auto;
   overflow-y: visible;
-  min-height: calc(var(--card-h) + 28px);
+  min-height: 0;
 }
 
 /* Card overlap: only show rank/suit corner in default state */
