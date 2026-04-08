@@ -30,6 +30,13 @@
   overflow: hidden;
 }
 
+.btn-leave-game {
+  margin: 8px;
+  padding: 6px 12px;
+  font-size: 12px;
+  flex-shrink: 0;
+}
+
 .table-area {
   flex: 1;
   display: flex;
@@ -459,17 +466,13 @@
 .my-hand-area {
   background: var(--bg-medium);
   overflow: hidden;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  flex: 0 0 auto;
+  max-height: 50vh;
 }
 
 .hand-scale-wrapper {
-  padding: clamp(8px, 1vw, 16px) clamp(12px, 1.5vw, 24px);
+  padding: clamp(4px, 0.5vw, 8px) clamp(8px, 1vw, 16px);
   width: 100%;
-  min-height: 0;
   overflow: hidden;
 }
 
@@ -491,11 +494,10 @@
 .hand-cards {
   display: flex;
   justify-content: center;
-  padding: 20px 0 8px;
+  padding: 8px 0 4px;
   flex-wrap: nowrap;
   overflow-x: auto;
   overflow-y: visible;
-  min-height: calc(var(--card-h) + 28px);
 }
 
 /* Card overlap: only show rank/suit corner in default state */

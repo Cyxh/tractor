@@ -30,6 +30,7 @@ interface GameTableProps {
   spectators?: { id: string; name: string }[];
   onSpectateAs?: (playerId: string) => void;
   onDevSwitchPlayer?: (targetPlayerId: string) => void;
+  onLeave?: () => void;
   isConnected?: boolean;
 }
 
@@ -37,7 +38,7 @@ const GameTable: React.FC<GameTableProps> = ({
   gameState, playerId, onPlayCards, onBid, onExchangeKitty, onDeclareFriends,
   onNextRound, onVoteRandomKitty, onPickupKitty, onConfirmReady,
   onSendChat, chatMessages, error, spectators, onSpectateAs, onDevSwitchPlayer,
-  isConnected = true
+  onLeave, isConnected = true
 }) => {
   const [selectedCards, setSelectedCards] = useState<Card[]>([]);
   const [dismissedError, setDismissedError] = useState<string | null>(null);
@@ -375,21 +376,21 @@ const GameTable: React.FC<GameTableProps> = ({
     }, 200);
   };
 
-  // Resizable hand area via flex ratio
-  const [handFlex, setHandFlex] = useState(0.3);
+  // Resizable hand area: resize bar controls zoom level, not flex split
+  const [handZoom, setHandZoom] = useState(1.0);
   const resizingRef = useRef(false);
-  const resizeStartRef = useRef<{ y: number; flex: number }>({ y: 0, flex: 0.3 });
+  const resizeStartRef = useRef<{ y: number; zoom: number }>({ y: 0, zoom: 1.0 });
   const handAreaRef = useRef<HTMLDivElement>(null);
 
-  const FLEX_MIN = 0.15;
-  const FLEX_MAX = 0.6;
+  const ZOOM_MIN = 0.7;
+  const ZOOM_MAX = 1.4;
 
   useEffect(() => {
     const handleResizeMove = (e: MouseEvent) => {
       if (!resizingRef.current) return;
       const delta = resizeStartRef.current.y - e.clientY;
-      const newFlex = Math.max(FLEX_MIN, Math.min(FLEX_MAX, resizeStartRef.current.flex + delta / window.innerHeight));
-      setHandFlex(newFlex);
+      const newZoom = Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, resizeStartRef.current.zoom + delta / window.innerHeight));
+      setHandZoom(newZoom);
     };
     const handleResizeUp = () => {
       resizingRef.current = false;
@@ -409,11 +410,11 @@ const GameTable: React.FC<GameTableProps> = ({
     resizingRef.current = true;
     resizeStartRef.current = {
       y: e.clientY,
-      flex: handFlex,
+      zoom: handZoom,
     };
     document.body.style.cursor = 'ns-resize';
     document.body.style.userSelect = 'none';
-  }, [handFlex]);
+  }, [handZoom]);
 
   const isMyTurn = gameState.currentTurnIdx === gameState.myIndex;
   const isLeader = gameState.currentLeaderIdx === gameState.myIndex;
@@ -467,10 +468,10 @@ const GameTable: React.FC<GameTableProps> = ({
       <div
         key={cid}
         ref={el => { cardWrappersRef.current[globalIdx] = el; }}
-        className={`hand-card-wrapper ${newCardIds.has(cid) ? 'card-deal-in' : ''} ${isHovered ? 'card-hovered' : ''} ${isDragging ? 'card-dragging' : ''} ${dragClass}`}
-        onMouseEnter={() => setHoveredCardIdx(globalIdx)}
+        className={`hand-card-wrapper ${newCardIds.has(cid) ? 'card-deal-in' : ''} ${isHovered && phase !== GamePhase.Drawing ? 'card-hovered' : ''} ${isDragging ? 'card-dragging' : ''} ${dragClass}`}
+        onMouseEnter={() => { if (phase !== GamePhase.Drawing) setHoveredCardIdx(globalIdx); }}
         onMouseLeave={() => setHoveredCardIdx(null)}
-        onMouseDown={(e) => handleMouseDown(globalIdx, e)}
+        onMouseDown={(e) => { if (phase !== GamePhase.Drawing) handleMouseDown(globalIdx, e); }}
       >
         <CardComponent
           card={card}
@@ -548,7 +549,7 @@ const GameTable: React.FC<GameTableProps> = ({
 
       {/* Main table area */}
       <div className="table-area">
-        <div className="felt-table" style={{ flex: `${1 - handFlex}` }}>
+        <div className="felt-table" style={{ flex: '1' }}>
           <div className="felt-center-glow" />
 
           {/* My player info (bottom center, above hand) */}
@@ -758,8 +759,8 @@ const GameTable: React.FC<GameTableProps> = ({
         </div>
 
         {/* My hand */}
-        <div className="my-hand-area" ref={handAreaRef} style={{ flex: `${handFlex}` }}>
-         <div className="hand-scale-wrapper" style={{ transform: `scale(${0.7 + handFlex})`, transformOrigin: 'center center' }}>
+        <div className="my-hand-area" ref={handAreaRef}>
+         <div className="hand-scale-wrapper" style={{ zoom: handZoom }}>
           {phase === GamePhase.FriendDeclaration && isLeader ? (
             <FriendDeclarationUI
               settings={gameState.settings}
@@ -861,6 +862,11 @@ const GameTable: React.FC<GameTableProps> = ({
 
       {/* Chat sidebar */}
       <div className="chat-sidebar">
+        {onLeave && (
+          <button className="btn btn-secondary btn-leave-game" onClick={onLeave}>
+            Leave Room
+          </button>
+        )}
         <ChatPanel messages={chatMessages} onSend={onSendChat} compact />
       </div>
 
