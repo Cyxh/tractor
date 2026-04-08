@@ -708,9 +708,9 @@ const LobbyScreen: React.FC<LobbyScreenProps> = ({
       </div>
       <div className="lobby-footer">
         <span className="lobby-footer-left">
-          If you liked this, consider buying Revin a boba — <a href="https://venmo.com/revin-jun" target="_blank" rel="noopener noreferrer">@revin-jun</a> on Venmo
+          If you liked this, consider buying Revin a boba — <a href="https://account.venmo.com/u/revin-jun" target="_blank" rel="noopener noreferrer">@revin-jun</a> on Venmo
         </span>
-        <span className="lobby-footer-right">Patch 1.1.0</span>
+        <span className="lobby-footer-right">Patch 1.1.1</span>
       </div>
     </div>
   );
