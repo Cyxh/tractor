@@ -98,15 +98,16 @@ export function useGame(ws: { send: (msg: any) => void; on: (type: string, handl
     }
   }, [ws.connected]);
 
+  // Send authenticate whenever token or connection changes
+  useEffect(() => {
+    if (!ws.connected || !authToken) return;
+    ws.send({ type: 'authenticate', payload: { token: authToken } });
+  }, [ws.connected, authToken, ws]);
+
   // Attempt rejoin on connect
   useEffect(() => {
     if (!ws.connected || attemptedRejoin) return;
     setAttemptedRejoin(true);
-
-    // Send auth token if we have one
-    if (authToken) {
-      ws.send({ type: 'authenticate', payload: { token: authToken } });
-    }
 
     // Try account-based rejoin first
     if (authToken) {

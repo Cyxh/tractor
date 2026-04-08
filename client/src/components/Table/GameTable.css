@@ -472,6 +472,21 @@
   overflow: visible;
 }
 
+.hand-cards-area {
+  position: relative;
+}
+
+.hand-exit-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  pointer-events: none;
+  z-index: 20;
+}
+
 .hand-cards {
   display: flex;
   justify-content: center;

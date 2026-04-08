@@ -41,6 +41,7 @@ const GameTable: React.FC<GameTableProps> = ({
   const [dismissedError, setDismissedError] = useState<string | null>(null);
   const prevHandRef = useRef<Set<string>>(new Set());
   const [newCardIds, setNewCardIds] = useState<Set<string>>(new Set());
+  const [exitingCards, setExitingCards] = useState<{ card: Card; id: string }[]>([]);
   const [hoveredCardIdx, setHoveredCardIdx] = useState<number | null>(null);
   const [cardOrder, setCardOrder] = useState<Card[]>([]);
   const [hasManualOrder, setHasManualOrder] = useState(false);
@@ -132,14 +133,32 @@ const GameTable: React.FC<GameTableProps> = ({
     }
   }, [gameState.phase]);
 
-  // Track newly dealt cards for animation
+  // Track newly dealt cards and exiting cards for animation
+  const prevHandCardsRef = useRef<Map<string, Card>>(new Map());
   useEffect(() => {
     const currentIds = new Set(gameState.hand.map(c => cardId(c)));
     const newIds = new Set<string>();
     currentIds.forEach(id => {
       if (!prevHandRef.current.has(id)) newIds.add(id);
     });
+
+    // Detect removed cards for exit animation
+    const removed: { card: Card; id: string }[] = [];
+    prevHandRef.current.forEach(id => {
+      if (!currentIds.has(id)) {
+        const card = prevHandCardsRef.current.get(id);
+        if (card) removed.push({ card, id });
+      }
+    });
+
     prevHandRef.current = currentIds;
+    prevHandCardsRef.current = new Map(gameState.hand.map(c => [cardId(c), c]));
+
+    if (removed.length > 0) {
+      setExitingCards(removed);
+      const timer = setTimeout(() => setExitingCards([]), 250);
+      return () => clearTimeout(timer);
+    }
     if (newIds.size > 0) {
       setNewCardIds(newIds);
       const timer = setTimeout(() => setNewCardIds(new Set()), 350);
@@ -719,13 +738,24 @@ const GameTable: React.FC<GameTableProps> = ({
                   )}
                 </div>
               )}
-              <div className={`hand-cards ${sortAnimating ? 'sort-animating' : ''}`} ref={handCardsRef}>
-                {(showTrumpCategory ? normalCards : displayCards).map((card, idx) => {
-                  const globalIdx = showTrumpCategory
-                    ? displayCards.findIndex(c => cardId(c) === cardId(card))
-                    : idx;
-                  return renderCardWrapper(card, idx, false, globalIdx);
-                })}
+              <div className="hand-cards-area">
+                {exitingCards.length > 0 && (
+                  <div className="hand-exit-overlay">
+                    {exitingCards.map(({ card, id }) => (
+                      <div key={`exit-${id}`} className="hand-card-wrapper card-play-out">
+                        <CardComponent card={card} />
+                      </div>
+                    ))}
+                  </div>
+                )}
+                <div className={`hand-cards ${sortAnimating ? 'sort-animating' : ''}`} ref={handCardsRef}>
+                  {(showTrumpCategory ? normalCards : displayCards).map((card, idx) => {
+                    const globalIdx = showTrumpCategory
+                      ? displayCards.findIndex(c => cardId(c) === cardId(card))
+                      : idx;
+                    return renderCardWrapper(card, idx, false, globalIdx);
+                  })}
+                </div>
               </div>
               {phase === GamePhase.KittyExchange && isLeader ? (
                 <div className="action-bar">
