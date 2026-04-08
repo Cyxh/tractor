@@ -189,14 +189,28 @@ const App: React.FC = () => {
     ? 'screen-enter'
     : '';
 
+  const showFooter = displayedScreen !== 'game';
+
+  const footer = showFooter ? (
+    <div className="site-footer">
+      <span className="site-footer-left">
+        If you liked this, consider buying Revin a boba — <a href="https://account.venmo.com/u/revin-jun" target="_blank" rel="noopener noreferrer">@revin-jun</a> on Venmo
+      </span>
+      <span className="site-footer-right">Patch 1.1.3</span>
+    </div>
+  ) : null;
+
   if (displayedScreen === 'connecting') {
     return (
-      <div className={`screen-transition ${transitionClass}`}>
-        <div className="connecting-screen">
-          <ConnectingSpinner />
-          <p>Connecting to server...</p>
+      <>
+        <div className={`screen-transition ${transitionClass}`}>
+          <div className="connecting-screen">
+            <ConnectingSpinner />
+            <p>Connecting to server...</p>
+          </div>
         </div>
-      </div>
+        {footer}
+      </>
     );
   }
 
@@ -233,20 +247,23 @@ const App: React.FC = () => {
 
     if (roomId && playerId && roomInfo) {
       return (
-        <div className={`screen-transition ${transitionClass}`}>
-          <RoomLobby
-            roomId={roomId}
-            playerId={playerId}
-            roomInfo={roomInfo}
-            onUpdateSettings={game.updateSettings}
-            onStartGame={game.startGame}
-            onSwapPosition={game.swapPosition}
-            onSendChat={game.sendChat}
-            chatMessages={chatMsgs}
-            onLeave={game.leaveRoom}
-            onLockRoom={game.lockRoom}
-          />
-        </div>
+        <>
+          <div className={`screen-transition ${transitionClass}`}>
+            <RoomLobby
+              roomId={roomId}
+              playerId={playerId}
+              roomInfo={roomInfo}
+              onUpdateSettings={game.updateSettings}
+              onStartGame={game.startGame}
+              onSwapPosition={game.swapPosition}
+              onSendChat={game.sendChat}
+              chatMessages={chatMsgs}
+              onLeave={game.leaveRoom}
+              onLockRoom={game.lockRoom}
+            />
+          </div>
+          {footer}
+        </>
       );
     }
     // Room data cleared but displayedScreen hasn't updated yet — render nothing
@@ -255,6 +272,7 @@ const App: React.FC = () => {
   }
 
   return (
+    <>
     <div className={`screen-transition ${transitionClass}`}>
       <LobbyScreen
         roomList={game.roomList}
@@ -275,6 +293,8 @@ const App: React.FC = () => {
         onResetPassword={game.resetPassword}
       />
     </div>
+    {footer}
+    </>
   );
 };
 
