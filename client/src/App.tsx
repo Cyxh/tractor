@@ -196,7 +196,7 @@ const App: React.FC = () => {
       <span className="site-footer-left">
         If you liked this, consider buying Revin a boba — <a href="https://account.venmo.com/u/revin-jun" target="_blank" rel="noopener noreferrer">@revin-jun</a> on Venmo
       </span>
-      <span className="site-footer-right">Patch 1.1.4</span>
+      <span className="site-footer-right">Patch 1.2.0</span>
     </div>
   ) : null;
 
@@ -233,6 +233,7 @@ const App: React.FC = () => {
         error={game.error}
         spectators={game.spectators}
         onSpectateAs={game.spectateAs}
+        onDevSwitchPlayer={game.devSwitchPlayer}
       />
       </div>
     );
@@ -260,6 +261,8 @@ const App: React.FC = () => {
               chatMessages={chatMsgs}
               onLeave={game.leaveRoom}
               onLockRoom={game.lockRoom}
+              onToggleDevMode={game.toggleDevMode}
+              showDevModeToggle={game.authUser?.username === 'cyxh'}
             />
           </div>
           {footer}

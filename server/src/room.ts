@@ -21,6 +21,9 @@ export class Room {
   locked: boolean = false;
   drawInterval: ReturnType<typeof setInterval> | null = null;
   chatMessages: ChatMessage[] = [];
+  devMode: boolean = false;
+  devPlayingAs: string | null = null;  // player ID the dev is currently controlling
+  devRealPlayerId: string | null = null;  // the actual player ID of the dev account
 
   constructor(id: string) {
     this.id = id;
@@ -155,8 +158,19 @@ export class Room {
   }
 
   startGame(): { success: boolean; reason?: string } {
-    if (this.players.length < 2) {
+    if (!this.devMode && this.players.length < 2) {
       return { success: false, reason: 'Need at least 2 players' };
+    }
+
+    // In dev mode with 1 player, add 3 dummy players
+    if (this.devMode && this.players.length === 1) {
+      this.devRealPlayerId = this.players[0].id;
+      const dummyNames = ['Dev Bot 2', 'Dev Bot 3', 'Dev Bot 4'];
+      for (const name of dummyNames) {
+        const dummyId = `dev_bot_${name.replace(/\s/g, '_').toLowerCase()}`;
+        this.players.push({ id: dummyId, name, ws: null, connected: false });
+      }
+      this.devPlayingAs = this.players[0].id;
     }
 
     this.settings.numPlayers = this.players.length;
@@ -321,6 +335,17 @@ export class Room {
     const connectedPlayers = this.players.filter(p => p.connected).map(p => p.id);
     for (const p of this.players) {
       if (!p.connected) continue;
+
+      // In dev mode, send the chosen player's view to the dev account
+      if (this.devMode && this.devRealPlayerId === p.id && this.devPlayingAs) {
+        const view = this.getPlayerView(this.devPlayingAs);
+        if (view) {
+          const devPlayerIds = this.players.map(pl => ({ id: pl.id, name: pl.name }));
+          this.sendToPlayer(p.id, { type: 'game_state', payload: { ...view, connectedPlayers, devMode: true, devPlayerIds, devPlayingAs: this.devPlayingAs } });
+        }
+        continue;
+      }
+
       const view = this.getPlayerView(p.id);
       if (view) {
         this.sendToPlayer(p.id, { type: 'game_state', payload: { ...view, connectedPlayers } });

@@ -305,6 +305,9 @@ export interface PlayerView {
   readyPlayers: string[];           // player IDs who are ready
   chatMessages: ChatMessage[];
   connectedPlayers?: string[];        // player IDs currently connected
+  devMode?: boolean;
+  devPlayerIds?: { id: string; name: string }[];
+  devPlayingAs?: string;
   isSpectator?: boolean;
   spectatorOf?: string | null;
 }

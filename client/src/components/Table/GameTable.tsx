@@ -29,12 +29,13 @@ interface GameTableProps {
   error: string | null;
   spectators?: { id: string; name: string }[];
   onSpectateAs?: (playerId: string) => void;
+  onDevSwitchPlayer?: (targetPlayerId: string) => void;
 }
 
 const GameTable: React.FC<GameTableProps> = ({
   gameState, playerId, onPlayCards, onBid, onExchangeKitty, onDeclareFriends,
   onNextRound, onVoteRandomKitty, onPickupKitty, onConfirmReady,
-  onSendChat, chatMessages, error, spectators, onSpectateAs
+  onSendChat, chatMessages, error, spectators, onSpectateAs, onDevSwitchPlayer
 }) => {
   const [selectedCards, setSelectedCards] = useState<Card[]>([]);
   const [dismissedError, setDismissedError] = useState<string | null>(null);
@@ -401,6 +402,21 @@ const GameTable: React.FC<GameTableProps> = ({
       <div className="table-sidebar">
         <TrumpIndicator trumpInfo={gameState.trumpInfo} />
         <ScoreBoard gameState={gameState} scoreAnimation={scoreAnimation} />
+        {/* Dev mode player switcher */}
+        {gameState.devMode && gameState.devPlayerIds && onDevSwitchPlayer && (
+          <div className="dev-switcher">
+            <div className="dev-switcher-title">Dev Mode</div>
+            {gameState.devPlayerIds.map(p => (
+              <button
+                key={p.id}
+                className={`btn btn-small dev-switcher-btn ${gameState.devPlayingAs === p.id ? 'btn-primary' : 'btn-secondary'}`}
+                onClick={() => onDevSwitchPlayer(p.id)}
+              >
+                {p.name}
+              </button>
+            ))}
+          </div>
+        )}
         {/* Spectator section */}
         {gameState.isSpectator && (
           <div className="spectator-banner">

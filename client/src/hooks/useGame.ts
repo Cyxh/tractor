@@ -408,6 +408,14 @@ export function useGame(ws: { send: (msg: any) => void; on: (type: string, handl
     ws.send({ type: 'lock_room', payload: { locked } });
   }, [ws]);
 
+  const toggleDevMode = useCallback(() => {
+    ws.send({ type: 'toggle_dev_mode', payload: {} });
+  }, [ws]);
+
+  const devSwitchPlayer = useCallback((targetPlayerId: string) => {
+    ws.send({ type: 'dev_switch_player', payload: { targetPlayerId } });
+  }, [ws]);
+
   const spectateAs = useCallback((targetPlayerId: string) => {
     ws.send({ type: 'spectate_as', payload: { playerId: targetPlayerId } });
   }, [ws]);
@@ -463,6 +471,8 @@ export function useGame(ws: { send: (msg: any) => void; on: (type: string, handl
     confirmReady,
     spectators,
     lockRoom,
+    toggleDevMode,
+    devSwitchPlayer,
     spectateAs,
     sendChat,
     leaveRoom,

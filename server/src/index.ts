@@ -190,6 +190,7 @@ wss.on('connection', (ws: WebSocket) => {
         settings: room.settings,
         hostId: room.hostId,
         locked: room.locked,
+        devMode: room.devMode,
         chatMessages: room.chatMessages,
       },
     });
@@ -203,6 +204,16 @@ wss.on('connection', (ws: WebSocket) => {
       send({ type: 'error', payload: { message: 'Invalid JSON' } });
       return;
     }
+
+    // In dev mode, game actions use the player the dev is currently controlling
+    const getEffectivePlayerId = (): string => {
+      if (!currentRoomId) return playerId;
+      const r = roomManager.getRoom(currentRoomId);
+      if (r?.devMode && r.devRealPlayerId === playerId && r.devPlayingAs) {
+        return r.devPlayingAs;
+      }
+      return playerId;
+    };
 
     switch (msg.type) {
       case 'authenticate': {
@@ -315,6 +326,20 @@ wss.on('connection', (ws: WebSocket) => {
         break;
       }
 
+      case 'toggle_dev_mode' as any: {
+        if (!currentRoomId) return;
+        const room = roomManager.getRoom(currentRoomId);
+        if (!room || playerId !== room.hostId) return;
+        const username = playerAccounts.get(playerId);
+        if (username !== 'cyxh') {
+          send({ type: 'error', payload: { message: 'Dev mode is not available for this account' } });
+          return;
+        }
+        room.devMode = !room.devMode;
+        sendRoomUpdate(currentRoomId);
+        break;
+      }
+
       case 'spectate_as' as any: {
         // Spectator requests to view from a specific player's perspective
         if (!currentRoomId) return;
@@ -341,6 +366,18 @@ wss.on('connection', (ws: WebSocket) => {
         break;
       }
 
+      case 'dev_switch_player' as any: {
+        if (!currentRoomId) return;
+        const room = roomManager.getRoom(currentRoomId);
+        if (!room || !room.devMode || room.devRealPlayerId !== playerId) return;
+        const targetId = (msg as any).payload?.targetPlayerId;
+        if (targetId && room.players.find(p => p.id === targetId)) {
+          room.devPlayingAs = targetId;
+          room.broadcastState();
+        }
+        break;
+      }
+
       case 'start_game': {
         if (!currentRoomId) return;
         const room = roomManager.getRoom(currentRoomId);
@@ -359,7 +396,7 @@ wss.on('connection', (ws: WebSocket) => {
         if (!currentRoomId) return;
         const room = roomManager.getRoom(currentRoomId);
         if (!room) return;
-        const result = room.handleBid(playerId, msg.payload.cards);
+        const result = room.handleBid(getEffectivePlayerId(), msg.payload.cards);
         if (result.success) {
           const acct = playerAccounts.get(playerId);
           if (acct) incrementStats(acct, { bidsMade: 1 });
@@ -378,7 +415,7 @@ wss.on('connection', (ws: WebSocket) => {
         if (!currentRoomId) return;
         const room = roomManager.getRoom(currentRoomId);
         if (!room) return;
-        const result = room.handleVoteRandomKitty(playerId);
+        const result = room.handleVoteRandomKitty(getEffectivePlayerId());
         if (!result.success) {
           send({ type: 'error', payload: { message: 'Cannot vote now' } });
         }
@@ -389,7 +426,7 @@ wss.on('connection', (ws: WebSocket) => {
         if (!currentRoomId) return;
         const room = roomManager.getRoom(currentRoomId);
         if (!room) return;
-        const result = room.handlePickupKitty(playerId);
+        const result = room.handlePickupKitty(getEffectivePlayerId());
         if (!result.success) {
           send({ type: 'error', payload: { message: result.reason || 'Cannot pick up kitty' } });
         }
@@ -400,7 +437,7 @@ wss.on('connection', (ws: WebSocket) => {
         if (!currentRoomId) return;
         const room = roomManager.getRoom(currentRoomId);
         if (!room) return;
-        const result = room.handleExchangeKitty(playerId, msg.payload.kitty);
+        const result = room.handleExchangeKitty(getEffectivePlayerId(), msg.payload.kitty);
         if (!result.success) {
           send({ type: 'error', payload: { message: result.reason || 'Invalid exchange' } });
         }
@@ -411,7 +448,7 @@ wss.on('connection', (ws: WebSocket) => {
         if (!currentRoomId) return;
         const room = roomManager.getRoom(currentRoomId);
         if (!room) return;
-        const result = room.handleDeclareFriends(playerId, msg.payload.declarations);
+        const result = room.handleDeclareFriends(getEffectivePlayerId(), msg.payload.declarations);
         if (!result.success) {
           send({ type: 'error', payload: { message: result.reason || 'Invalid declaration' } });
         }
@@ -422,7 +459,7 @@ wss.on('connection', (ws: WebSocket) => {
         if (!currentRoomId) return;
         const room = roomManager.getRoom(currentRoomId);
         if (!room) return;
-        const result = room.handleConfirmReady(playerId);
+        const result = room.handleConfirmReady(getEffectivePlayerId());
         if (!result.success) {
           send({ type: 'error', payload: { message: 'Cannot confirm ready now' } });
         }
@@ -435,7 +472,7 @@ wss.on('connection', (ws: WebSocket) => {
         if (!room || !room.game) return;
         const prevPhase = room.game.state.phase;
         const prevTrickCount = room.game.state.tricks.length;
-        const result = room.handlePlayCards(playerId, msg.payload.cards);
+        const result = room.handlePlayCards(getEffectivePlayerId(), msg.payload.cards);
         if (result.success) {
           const acct = playerAccounts.get(playerId);
           if (acct) {

@@ -10,6 +10,7 @@ interface RoomInfo {
   settings: GameSettings;
   hostId: string;
   locked?: boolean;
+  devMode?: boolean;
 }
 
 interface RoomLobbyProps {
@@ -23,11 +24,14 @@ interface RoomLobbyProps {
   chatMessages: ChatMessage[];
   onLeave: () => void;
   onLockRoom?: (locked: boolean) => void;
+  onToggleDevMode?: () => void;
+  showDevModeToggle?: boolean;
 }
 
 const RoomLobby: React.FC<RoomLobbyProps> = ({
   roomId, playerId, roomInfo, onUpdateSettings, onStartGame,
-  onSwapPosition, onSendChat, chatMessages, onLeave, onLockRoom
+  onSwapPosition, onSendChat, chatMessages, onLeave, onLockRoom,
+  onToggleDevMode, showDevModeToggle
 }) => {
   const isHost = playerId === roomInfo.hostId;
   const [starting, setStarting] = useState(false);
@@ -110,11 +114,21 @@ const RoomLobby: React.FC<RoomLobbyProps> = ({
               </div>
             )}
 
+            {isHost && showDevModeToggle && onToggleDevMode && (
+              <button
+                className={`btn btn-small ${roomInfo.devMode ? 'btn-primary' : 'btn-secondary'}`}
+                onClick={onToggleDevMode}
+                style={{ marginBottom: 8, width: '100%' }}
+              >
+                {roomInfo.devMode ? 'Dev Mode ON' : 'Enable Dev Mode'}
+              </button>
+            )}
+
             {isHost && (
               <button
                 className="btn btn-primary start-btn"
                 onClick={handleStart}
-                disabled={roomInfo.players.length < 2 || starting}
+                disabled={(!roomInfo.devMode && roomInfo.players.length < 2) || starting}
               >
                 {starting ? (
                   <><span className="btn-spinner" /> Starting...</>
