@@ -30,6 +30,13 @@
   overflow: hidden;
 }
 
+.btn-leave-game {
+  margin: 8px;
+  padding: 6px 12px;
+  font-size: 12px;
+  flex-shrink: 0;
+}
+
 .table-area {
   flex: 1;
   display: flex;
@@ -459,9 +466,7 @@
 .my-hand-area {
   background: var(--bg-medium);
   overflow: hidden;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
+  flex-shrink: 0;
 }
 
 .hand-scale-wrapper {

@@ -30,6 +30,7 @@ interface GameTableProps {
   spectators?: { id: string; name: string }[];
   onSpectateAs?: (playerId: string) => void;
   onDevSwitchPlayer?: (targetPlayerId: string) => void;
+  onLeave?: () => void;
   isConnected?: boolean;
 }
 
@@ -37,7 +38,7 @@ const GameTable: React.FC<GameTableProps> = ({
   gameState, playerId, onPlayCards, onBid, onExchangeKitty, onDeclareFriends,
   onNextRound, onVoteRandomKitty, onPickupKitty, onConfirmReady,
   onSendChat, chatMessages, error, spectators, onSpectateAs, onDevSwitchPlayer,
-  isConnected = true
+  onLeave, isConnected = true
 }) => {
   const [selectedCards, setSelectedCards] = useState<Card[]>([]);
   const [dismissedError, setDismissedError] = useState<string | null>(null);
@@ -384,6 +385,18 @@ const GameTable: React.FC<GameTableProps> = ({
   const FLEX_MIN = 0.15;
   const FLEX_MAX = 0.6;
 
+  // Auto-expand hand area when trump cards first appear
+  const hadTrumpCards = useRef(false);
+  useEffect(() => {
+    if (showTrumpCategory && trumpCategoryCards.length > 0 && !hadTrumpCards.current) {
+      hadTrumpCards.current = true;
+      setHandFlex(prev => Math.max(prev, 0.28));
+    }
+    if (phase === GamePhase.Playing || phase === GamePhase.KittyExchange) {
+      hadTrumpCards.current = false;
+    }
+  }, [trumpCategoryCards.length, showTrumpCategory, phase]);
+
   useEffect(() => {
     const handleResizeMove = (e: MouseEvent) => {
       if (!resizingRef.current) return;
@@ -467,10 +480,10 @@ const GameTable: React.FC<GameTableProps> = ({
       <div
         key={cid}
         ref={el => { cardWrappersRef.current[globalIdx] = el; }}
-        className={`hand-card-wrapper ${newCardIds.has(cid) ? 'card-deal-in' : ''} ${isHovered ? 'card-hovered' : ''} ${isDragging ? 'card-dragging' : ''} ${dragClass}`}
-        onMouseEnter={() => setHoveredCardIdx(globalIdx)}
+        className={`hand-card-wrapper ${newCardIds.has(cid) ? 'card-deal-in' : ''} ${isHovered && phase !== GamePhase.Drawing ? 'card-hovered' : ''} ${isDragging ? 'card-dragging' : ''} ${dragClass}`}
+        onMouseEnter={() => { if (phase !== GamePhase.Drawing) setHoveredCardIdx(globalIdx); }}
         onMouseLeave={() => setHoveredCardIdx(null)}
-        onMouseDown={(e) => handleMouseDown(globalIdx, e)}
+        onMouseDown={(e) => { if (phase !== GamePhase.Drawing) handleMouseDown(globalIdx, e); }}
       >
         <CardComponent
           card={card}
@@ -548,7 +561,7 @@ const GameTable: React.FC<GameTableProps> = ({
 
       {/* Main table area */}
       <div className="table-area">
-        <div className="felt-table" style={{ flex: `${1 - handFlex}` }}>
+        <div className="felt-table" style={{ flex: 1 }}>
           <div className="felt-center-glow" />
 
           {/* My player info (bottom center, above hand) */}
@@ -758,7 +771,7 @@ const GameTable: React.FC<GameTableProps> = ({
         </div>
 
         {/* My hand */}
-        <div className="my-hand-area" ref={handAreaRef} style={{ flex: `${handFlex}` }}>
+        <div className="my-hand-area" ref={handAreaRef}>
          <div className="hand-scale-wrapper" style={{ zoom: 0.7 + handFlex }}>
           {phase === GamePhase.FriendDeclaration && isLeader ? (
             <FriendDeclarationUI
@@ -861,6 +874,11 @@ const GameTable: React.FC<GameTableProps> = ({
 
       {/* Chat sidebar */}
       <div className="chat-sidebar">
+        {onLeave && (
+          <button className="btn btn-secondary btn-leave-game" onClick={onLeave}>
+            Leave Room
+          </button>
+        )}
         <ChatPanel messages={chatMessages} onSend={onSendChat} compact />
       </div>
 
