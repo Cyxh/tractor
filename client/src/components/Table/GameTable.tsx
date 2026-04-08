@@ -759,7 +759,7 @@ const GameTable: React.FC<GameTableProps> = ({
 
         {/* My hand */}
         <div className="my-hand-area" ref={handAreaRef} style={{ flex: `${handFlex}` }}>
-         <div className="hand-scale-wrapper" style={{ transform: `scale(${0.7 + handFlex})`, transformOrigin: 'center center' }}>
+         <div className="hand-scale-wrapper" style={{ zoom: 0.7 + handFlex }}>
           {phase === GamePhase.FriendDeclaration && isLeader ? (
             <FriendDeclarationUI
               settings={gameState.settings}
