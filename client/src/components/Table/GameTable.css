@@ -467,7 +467,6 @@
   background: var(--bg-medium);
   overflow: hidden;
   flex-shrink: 0;
-  max-height: 45vh;
 }
 
 .hand-scale-wrapper {
