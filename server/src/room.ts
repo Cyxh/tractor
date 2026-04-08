@@ -71,7 +71,30 @@ export class Room {
       return;
     }
 
-    // If game is in progress, mark as disconnected instead of removing
+    // Mark as disconnected but keep in room (both lobby and in-game)
+    const player = this.players.find(p => p.id === id);
+    if (player) {
+      player.connected = false;
+      player.ws = null;
+      // Transfer host to next connected player if this was the host
+      if (this.hostId === id) {
+        const connectedPlayer = this.players.find(p => p.connected);
+        if (connectedPlayer) {
+          this.hostId = connectedPlayer.id;
+        }
+      }
+    }
+  }
+
+  fullyRemovePlayer(id: string): void {
+    // Check spectators first
+    const specIdx = this.spectators.findIndex(s => s.id === id);
+    if (specIdx >= 0) {
+      this.spectators.splice(specIdx, 1);
+      return;
+    }
+
+    // If game is in progress, just mark as disconnected
     if (this.game && this.game.state.phase !== GamePhase.Lobby) {
       const player = this.players.find(p => p.id === id);
       if (player) {
@@ -81,6 +104,7 @@ export class Room {
       return;
     }
 
+    // In lobby, fully remove from room
     this.players = this.players.filter(p => p.id !== id);
     if (this.hostId === id && this.players.length > 0) {
       this.hostId = this.players[0].id;

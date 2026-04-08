@@ -613,7 +613,7 @@ wss.on('connection', (ws: WebSocket) => {
         if (!currentRoomId) return;
         const room = roomManager.getRoom(currentRoomId);
         if (room) {
-          room.removePlayer(playerId);
+          room.fullyRemovePlayer(playerId);
           if (room.players.length === 0 || room.allDisconnected()) {
             roomManager.removeRoom(currentRoomId);
             const acct = playerAccounts.get(playerId);
