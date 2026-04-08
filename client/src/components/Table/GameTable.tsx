@@ -793,17 +793,8 @@ const GameTable: React.FC<GameTableProps> = ({
                   <div className="trump-category-label">Trump Rank / Jokers</div>
                   <div className="trump-category-cards">
                     {trumpCategoryCards.map((card, idx) => {
-                      const cid = cardId(card);
-                      return (
-                        <div key={cid} className={`hand-card-wrapper ${newCardIds.has(cid) ? 'card-deal-in-trump' : ''}`}>
-                          <CardComponent
-                            card={card}
-                            selected={selectedCards.some(c => cardId(c) === cid)}
-                            onClick={() => toggleCard(card)}
-                            isTrump
-                          />
-                        </div>
-                      );
+                      const globalIdx = displayCards.findIndex(c => cardId(c) === cardId(card));
+                      return renderCardWrapper(card, idx, true, globalIdx);
                     })}
                   </div>
                   {gameState.canBid && (

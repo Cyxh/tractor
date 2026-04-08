@@ -753,6 +753,27 @@
   gap: 4px;
 }
 
+/* Override deal-in to fit within trump section padding */
+.trump-category-cards .card-deal-in {
+  animation: dealInTrump 0.3s ease-out;
+}
+
+@keyframes dealInTrump {
+  from {
+    opacity: 0;
+    transform: translateY(-18px) scale(0.7);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Trump cards don't overlap */
+.trump-category-cards .hand-card-wrapper:not(:first-child) {
+  margin-left: 0;
+}
+
 .btn-bid-trump {
   padding: 8px 16px;
   font-size: 12px;
