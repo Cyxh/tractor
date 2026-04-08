@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useMemo, useRef, useEffect, useLayoutEffect, useCallback } from 'react';
 import { PlayerView, Card, GamePhase, cardId, cardEquals, ChatMessage, Trick } from 'tractor-shared';
 import { RANK_NAMES, SUIT_SYMBOLS, SUIT_NAMES } from 'tractor-shared';
 import { cardOrder as getCardOrder } from 'tractor-shared';
@@ -137,11 +137,12 @@ const GameTable: React.FC<GameTableProps> = ({
 
   // Track newly dealt cards and exiting cards for animation
   const prevHandCardsRef = useRef<Map<string, Card>>(new Map());
-  // FLIP animation: capture card positions before render
-  const prevCardPositions = useRef<Map<string, DOMRect>>(new Map());
+  // FLIP animation: snapshot card positions keyed by card ID
+  const cardPositionSnapshot = useRef<Map<string, DOMRect>>(new Map());
+  const pendingFlip = useRef(false);
 
-  // Capture positions before DOM update (layout effect)
-  const capturePositions = useCallback(() => {
+  // Snapshot current card positions into ref (call before hand changes)
+  const snapshotCardPositions = useCallback(() => {
     const positions = new Map<string, DOMRect>();
     cardWrappersRef.current.forEach((el, idx) => {
       if (el) {
@@ -150,14 +151,10 @@ const GameTable: React.FC<GameTableProps> = ({
         if (card) positions.set(cardId(card), el.getBoundingClientRect());
       }
     });
-    prevCardPositions.current = positions;
+    cardPositionSnapshot.current = positions;
   }, [cardOrder, gameState.hand]);
 
-  // Capture positions before hand changes
-  useEffect(() => {
-    capturePositions();
-  });
-
+  // Detect new/removed cards and trigger animations
   useEffect(() => {
     const currentIds = new Set(gameState.hand.map(c => cardId(c)));
     const newIds = new Set<string>();
@@ -179,37 +176,63 @@ const GameTable: React.FC<GameTableProps> = ({
 
     if (removed.length > 0) {
       setExitingCards(removed);
+      pendingFlip.current = true;
       const timer = setTimeout(() => setExitingCards([]), 250);
       return () => clearTimeout(timer);
     }
     if (newIds.size > 0) {
       setNewCardIds(newIds);
-      // FLIP: animate existing cards to new positions
-      requestAnimationFrame(() => {
-        cardWrappersRef.current.forEach((el, idx) => {
-          if (!el) return;
-          const cards = cardOrder.length > 0 ? cardOrder : gameState.hand;
-          const card = cards[idx];
-          if (!card) return;
-          const cid = cardId(card);
-          if (newIds.has(cid)) return; // New cards use deal-in animation
-          const oldRect = prevCardPositions.current.get(cid);
-          if (!oldRect) return;
-          const newRect = el.getBoundingClientRect();
-          const dx = oldRect.left - newRect.left;
-          if (Math.abs(dx) < 1) return; // No meaningful movement
-          el.style.transition = 'none';
-          el.style.transform = `translateX(${dx}px)`;
-          requestAnimationFrame(() => {
-            el.style.transition = 'transform 0.25s ease';
-            el.style.transform = '';
-          });
-        });
-      });
+      pendingFlip.current = true;
       const timer = setTimeout(() => setNewCardIds(new Set()), 350);
       return () => clearTimeout(timer);
     }
   }, [gameState.hand]);
+
+  // FLIP: after DOM updates with new cards, animate existing cards from old to new positions
+  useLayoutEffect(() => {
+    if (!pendingFlip.current) {
+      // No pending animation — just snapshot for next time
+      snapshotCardPositions();
+      return;
+    }
+    pendingFlip.current = false;
+    const oldPositions = cardPositionSnapshot.current;
+
+    // Read new positions and apply inverse transforms
+    const animations: { el: HTMLDivElement; dx: number }[] = [];
+    const cards = cardOrder.length > 0 ? cardOrder : gameState.hand;
+    cardWrappersRef.current.forEach((el, idx) => {
+      if (!el) return;
+      const card = cards[idx];
+      if (!card) return;
+      const cid = cardId(card);
+      const oldRect = oldPositions.get(cid);
+      if (!oldRect) return; // New card, skip (uses deal-in animation)
+      const newRect = el.getBoundingClientRect();
+      const dx = oldRect.left - newRect.left;
+      if (Math.abs(dx) > 1) {
+        animations.push({ el, dx });
+      }
+    });
+
+    if (animations.length > 0) {
+      // Apply inverse transform immediately (before paint)
+      for (const { el, dx } of animations) {
+        el.style.transition = 'none';
+        el.style.transform = `translateX(${dx}px)`;
+      }
+      // Force reflow so the transform is applied
+      void document.body.offsetHeight;
+      // Animate to final position
+      for (const { el } of animations) {
+        el.style.transition = 'transform 0.3s ease';
+        el.style.transform = '';
+      }
+    }
+
+    // Snapshot new positions for next change
+    snapshotCardPositions();
+  });
 
   // Arrange players around the table relative to current player
   const seatPositions = useMemo(() => {
@@ -736,7 +759,7 @@ const GameTable: React.FC<GameTableProps> = ({
 
         {/* My hand */}
         <div className="my-hand-area" ref={handAreaRef} style={{ flex: `${handFlex}` }}>
-         <div className="hand-scale-wrapper" style={{ transform: `scale(${0.7 + handFlex})`, transformOrigin: 'top center' }}>
+         <div className="hand-scale-wrapper" style={{ transform: `scale(${0.7 + handFlex})`, transformOrigin: 'center center' }}>
           {phase === GamePhase.FriendDeclaration && isLeader ? (
             <FriendDeclarationUI
               settings={gameState.settings}

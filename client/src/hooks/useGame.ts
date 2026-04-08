@@ -98,6 +98,16 @@ export function useGame(ws: { send: (msg: any) => void; on: (type: string, handl
     }
   }, [ws.connected]);
 
+  // Re-request game state after reconnection if we're in a game
+  useEffect(() => {
+    if (!ws.connected || !roomId) return;
+    // Small delay to let rejoin complete first
+    const timer = setTimeout(() => {
+      ws.send({ type: 'request_state', payload: {} });
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [ws.connected]);
+
   // Send authenticate whenever token or connection changes
   useEffect(() => {
     if (!ws.connected || !authToken) return;

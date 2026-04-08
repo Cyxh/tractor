@@ -348,6 +348,17 @@ wss.on('connection', (ws: WebSocket) => {
         break;
       }
 
+      case 'request_state' as any: {
+        if (!currentRoomId) return;
+        const room = roomManager.getRoom(currentRoomId);
+        if (!room) return;
+        sendRoomUpdate(currentRoomId);
+        if (room.game) {
+          room.broadcastState();
+        }
+        break;
+      }
+
       case 'spectate_as' as any: {
         // Spectator requests to view from a specific player's perspective
         if (!currentRoomId) return;
