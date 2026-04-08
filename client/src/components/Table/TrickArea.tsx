@@ -78,8 +78,12 @@ const TrickArea: React.FC<TrickAreaProps> = ({ currentTrick, players, myIndex, t
   const totalLeadCards = leadPlay.cards.length;
   const needsVerticalStack = totalLeadCards > 6;
 
+  // Scale cards based on number of cards in the lead play
+  const maxCardsInPlay = Math.max(...currentTrick.plays.map(p => p.cards.length), 1);
+  const cardScale = maxCardsInPlay <= 2 ? 1 : maxCardsInPlay <= 4 ? 0.85 : maxCardsInPlay <= 6 ? 0.7 : 0.6;
+
   return (
-    <div className="trick-area">
+    <div className="trick-area" style={{ '--trick-card-scale': cardScale } as React.CSSProperties}>
       {/* Lead play description */}
       {showDescription && (
         <div className="trick-description">

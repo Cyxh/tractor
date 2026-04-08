@@ -3,8 +3,8 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: clamp(300px, 50vw, 700px);
-  height: clamp(200px, 40vh, 500px);
+  width: clamp(300px, 60vw, 800px);
+  height: clamp(200px, 50vh, 600px);
   pointer-events: none;
 }
 
@@ -29,8 +29,10 @@
 
 .trick-play-cards {
   display: flex;
-  gap: 6px;
+  gap: 4px;
   animation: cardSlideIn 0.2s ease;
+  transform: scale(var(--trick-card-scale, 1));
+  transform-origin: center;
 }
 
 .trick-play-cards.trick-cards-vertical {
@@ -58,49 +60,49 @@
   box-shadow: -2px 0 4px rgba(0, 0, 0, 0.3);
 }
 
-/* Positions - pushed toward edges near player names */
+/* Positions - pushed toward edges near player icons */
 .trick-bottom {
-  bottom: 5%;
+  bottom: 0%;
   left: 50%;
   transform: translateX(-50%);
 }
 
 .trick-top {
-  top: 5%;
+  top: 0%;
   left: 50%;
   transform: translateX(-50%);
 }
 
 .trick-right {
-  right: 5%;
+  right: 0%;
   top: 50%;
   transform: translateY(-50%);
 }
 
 .trick-left {
-  left: 5%;
+  left: 0%;
   top: 50%;
   transform: translateY(-50%);
 }
 
 .trick-bottom-right {
-  bottom: 8%;
-  right: 8%;
+  bottom: 2%;
+  right: 2%;
 }
 
 .trick-bottom-left {
-  bottom: 8%;
-  left: 8%;
+  bottom: 2%;
+  left: 2%;
 }
 
 .trick-top-right {
-  top: 8%;
-  right: 8%;
+  top: 2%;
+  right: 2%;
 }
 
 .trick-top-left {
-  top: 8%;
-  left: 8%;
+  top: 2%;
+  left: 2%;
 }
 
 /* Lead play description text box */

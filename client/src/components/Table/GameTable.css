@@ -113,8 +113,8 @@
 }
 
 .my-avatar {
-  width: clamp(40px, 3.8vw, 60px);
-  height: clamp(40px, 3.8vw, 60px);
+  width: clamp(44px, 4.2vw, 72px);
+  height: clamp(44px, 4.2vw, 72px);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -837,6 +837,10 @@
   color: var(--accent);
   font-size: clamp(12px, 1.1vw, 16px);
   font-weight: 600;
+}
+
+.trick-winner-points.points-defended {
+  color: var(--success);
 }
 
 @keyframes trickBadgePop {

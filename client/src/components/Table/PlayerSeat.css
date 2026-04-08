@@ -60,8 +60,8 @@
 }
 
 .avatar-circle {
-  width: clamp(36px, 3.5vw, 56px);
-  height: clamp(36px, 3.5vw, 56px);
+  width: clamp(36px, 3.5vw, 64px);
+  height: clamp(36px, 3.5vw, 64px);
   border-radius: 50%;
   display: flex;
   align-items: center;

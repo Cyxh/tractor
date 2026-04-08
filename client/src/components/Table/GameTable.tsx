@@ -44,7 +44,7 @@ const GameTable: React.FC<GameTableProps> = ({
   const [dismissedError, setDismissedError] = useState<string | null>(null);
   const prevHandRef = useRef<Set<string>>(new Set());
   const [newCardIds, setNewCardIds] = useState<Set<string>>(new Set());
-  const [exitingCards, setExitingCards] = useState<{ card: Card; id: string }[]>([]);
+  const [exitingCards, setExitingCards] = useState<{ card: Card; id: string; left: number }[]>([]);
   const [hoveredCardIdx, setHoveredCardIdx] = useState<number | null>(null);
   const [cardOrder, setCardOrder] = useState<Card[]>([]);
   const [hasManualOrder, setHasManualOrder] = useState(false);
@@ -163,12 +163,17 @@ const GameTable: React.FC<GameTableProps> = ({
       if (!prevHandRef.current.has(id)) newIds.add(id);
     });
 
-    // Detect removed cards for exit animation
-    const removed: { card: Card; id: string }[] = [];
+    // Detect removed cards for exit animation, capturing their last positions
+    const removed: { card: Card; id: string; left: number }[] = [];
+    const containerRect = handCardsRef.current?.getBoundingClientRect();
     prevHandRef.current.forEach(id => {
       if (!currentIds.has(id)) {
         const card = prevHandCardsRef.current.get(id);
-        if (card) removed.push({ card, id });
+        if (card) {
+          const snap = cardPositionSnapshot.current.get(id);
+          const left = snap && containerRect ? snap.left - containerRect.left : -1;
+          removed.push({ card, id, left });
+        }
       }
     });
 
@@ -181,7 +186,7 @@ const GameTable: React.FC<GameTableProps> = ({
       const timer = setTimeout(() => setExitingCards([]), 250);
       return () => clearTimeout(timer);
     }
-    if (newIds.size > 0) {
+    if (newIds.size > 0 && gameState.phase !== GamePhase.Scoring && gameState.phase !== GamePhase.GameOver) {
       setNewCardIds(newIds);
       pendingFlip.current = true;
       const timer = setTimeout(() => setNewCardIds(new Set()), 350);
@@ -609,7 +614,7 @@ const GameTable: React.FC<GameTableProps> = ({
               <div className="trick-winner-badge">
                 {gameState.players[trickWinnerIdx]?.name} wins!
                 {completedTrick.points > 0 && (
-                  <span className="trick-winner-points">
+                  <span className={`trick-winner-points ${gameState.players[trickWinnerIdx]?.team === 'defending' ? 'points-defended' : ''}`}>
                     {gameState.players[trickWinnerIdx]?.team === 'attacking'
                       ? `+${completedTrick.points} pts`
                       : `${completedTrick.points} pts defended`}
@@ -815,8 +820,12 @@ const GameTable: React.FC<GameTableProps> = ({
               <div className="hand-cards-area">
                 {exitingCards.length > 0 && (
                   <div className="hand-exit-overlay">
-                    {exitingCards.map(({ card, id }) => (
-                      <div key={`exit-${id}`} className="hand-card-wrapper card-play-out">
+                    {exitingCards.map(({ card, id, left }) => (
+                      <div
+                        key={`exit-${id}`}
+                        className="hand-card-wrapper card-play-out"
+                        style={left >= 0 ? { position: 'absolute', left: `${left}px` } : undefined}
+                      >
                         <CardComponent card={card} />
                       </div>
                     ))}
