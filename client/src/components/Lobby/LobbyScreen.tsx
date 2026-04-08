@@ -114,6 +114,18 @@ const LobbyScreen: React.FC<LobbyScreenProps> = ({
     return cards;
   }, []);
 
+  // Generate sparkle data once with true randomness
+  const sparkles = useMemo(() =>
+    Array.from({ length: 30 }, (_, i) => ({
+      id: i,
+      x: Math.random() * 100,
+      y: Math.random() * 100,
+      size: 2 + Math.random() * 2,
+      delay: Math.random() * 8,
+      duration: 2 + Math.random() * 3,
+    })),
+  []);
+
   // Entrance animation trigger
   const [entered, setEntered] = useState(false);
   useEffect(() => {
@@ -300,26 +312,20 @@ const LobbyScreen: React.FC<LobbyScreenProps> = ({
         {floatingCards.map(renderFloatingCard)}
       </div>
       <div className="lobby-sparkles" aria-hidden>
-        {Array.from({ length: 25 }, (_, i) => {
-          // Pseudo-random positions using a simple hash
-          const px = ((i * 37 + 13) * 97) % 100;
-          const py = ((i * 53 + 7) * 83) % 100;
-          const size = 2 + ((i * 11) % 3);
-          return (
-            <div
-              key={i}
-              className="sparkle"
-              style={{
-                left: `${px}%`,
-                top: `${py}%`,
-                width: size,
-                height: size,
-                animationDelay: `${(i * 0.4) + ((i * 17) % 5) * 0.3}s`,
-                animationDuration: `${2.5 + ((i * 13) % 4) * 0.5}s`,
-              }}
-            />
-          );
-        })}
+        {sparkles.map(s => (
+          <div
+            key={s.id}
+            className="sparkle"
+            style={{
+              left: `${s.x}%`,
+              top: `${s.y}%`,
+              width: s.size,
+              height: s.size,
+              animationDelay: `${s.delay}s`,
+              animationDuration: `${s.duration}s`,
+            }}
+          />
+        ))}
       </div>
     </>
   );

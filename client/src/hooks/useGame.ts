@@ -211,12 +211,26 @@ export function useGame(ws: { send: (msg: any) => void; on: (type: string, handl
     clearAuth();
   }, []);
 
+  // Helper for authenticated fetch — auto-logout on expired token
+  const authFetch = useCallback(async (url: string, options: RequestInit = {}): Promise<Response> => {
+    const res = await fetch(url, {
+      ...options,
+      headers: { ...options.headers as Record<string, string>, Authorization: `Bearer ${authToken}` },
+    });
+    if (res.status === 401) {
+      setAuthUser(null);
+      setAuthToken(null);
+      clearAuth();
+    }
+    return res;
+  }, [authToken]);
+
   const changeUsername = useCallback(async (newUsername: string): Promise<{ error?: string }> => {
     if (!authToken) return { error: 'Not logged in' };
     try {
-      const res = await fetch('/api/change-username', {
+      const res = await authFetch('/api/change-username', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${authToken}` },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ newUsername }),
       });
       const data = await res.json();
@@ -232,7 +246,7 @@ export function useGame(ws: { send: (msg: any) => void; on: (type: string, handl
   const getAccountEmail = useCallback(async (): Promise<{ email: string | null; emailVerified: boolean; error?: string }> => {
     if (!authToken) return { email: null, emailVerified: false, error: 'Not logged in' };
     try {
-      const res = await fetch('/api/account-email', { headers: { Authorization: `Bearer ${authToken}` } });
+      const res = await authFetch('/api/account-email');
       const data = await res.json();
       if (!res.ok) return { email: null, emailVerified: false, error: data.error };
       return data;
@@ -242,9 +256,9 @@ export function useGame(ws: { send: (msg: any) => void; on: (type: string, handl
   const requestEmailVerification = useCallback(async (email: string): Promise<{ error?: string }> => {
     if (!authToken) return { error: 'Not logged in' };
     try {
-      const res = await fetch('/api/request-email-verification', {
+      const res = await authFetch('/api/request-email-verification', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${authToken}` },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email }),
       });
       const data = await res.json();
@@ -256,9 +270,9 @@ export function useGame(ws: { send: (msg: any) => void; on: (type: string, handl
   const verifyEmail = useCallback(async (code: string): Promise<{ error?: string }> => {
     if (!authToken) return { error: 'Not logged in' };
     try {
-      const res = await fetch('/api/verify-email', {
+      const res = await authFetch('/api/verify-email', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${authToken}` },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ code }),
       });
       const data = await res.json();
@@ -270,9 +284,8 @@ export function useGame(ws: { send: (msg: any) => void; on: (type: string, handl
   const unlinkEmail = useCallback(async (): Promise<{ error?: string }> => {
     if (!authToken) return { error: 'Not logged in' };
     try {
-      const res = await fetch('/api/unlink-email', {
+      const res = await authFetch('/api/unlink-email', {
         method: 'POST',
-        headers: { Authorization: `Bearer ${authToken}` },
       });
       const data = await res.json();
       if (!res.ok) return { error: data.error || 'Failed' };
@@ -308,9 +321,9 @@ export function useGame(ws: { send: (msg: any) => void; on: (type: string, handl
   const changePassword = useCallback(async (currentPassword: string, newPassword: string): Promise<{ error?: string }> => {
     if (!authToken) return { error: 'Not logged in' };
     try {
-      const res = await fetch('/api/change-password', {
+      const res = await authFetch('/api/change-password', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${authToken}` },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ currentPassword, newPassword }),
       });
       const data = await res.json();
