@@ -218,8 +218,8 @@
 
 /* ---- Card back ---- */
 .fc-back {
-  background: linear-gradient(135deg, #b22222 0%, #8b0000 50%, #b22222 100%);
-  border: 2px solid #cc3333;
+  background: linear-gradient(135deg, #2a4a7f 0%, #1a3a6f 50%, #2a4a7f 100%);
+  border: 2px solid #3a5a8f;
 }
 
 .fc-back-pattern {
