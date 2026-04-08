@@ -39,7 +39,7 @@
   --font-md: clamp(14px, 1.15vw, 19px);
   --font-lg: clamp(18px, 1.6vw, 28px);
   --font-xl: clamp(24px, 2.2vw, 38px);
-  --sidebar-w: clamp(180px, 15vw, 280px);
+  --sidebar-w: clamp(200px, 17vw, 300px);
 }
 
 html, body, #root {

@@ -282,21 +282,21 @@ const GameTable: React.FC<GameTableProps> = ({
     }, 200);
   };
 
-  // Resizable hand area via scale
-  const [handScale, setHandScale] = useState(1);
+  // Resizable hand area via flex ratio
+  const [handFlex, setHandFlex] = useState(0.3);
   const resizingRef = useRef(false);
-  const resizeStartRef = useRef<{ y: number; scale: number }>({ y: 0, scale: 1 });
+  const resizeStartRef = useRef<{ y: number; flex: number }>({ y: 0, flex: 0.3 });
   const handAreaRef = useRef<HTMLDivElement>(null);
 
-  const SCALE_MIN = 0.5;
-  const SCALE_MAX = 1.5;
+  const FLEX_MIN = 0.15;
+  const FLEX_MAX = 0.6;
 
   useEffect(() => {
     const handleResizeMove = (e: MouseEvent) => {
       if (!resizingRef.current) return;
       const delta = resizeStartRef.current.y - e.clientY;
-      const newScale = Math.max(SCALE_MIN, Math.min(SCALE_MAX, resizeStartRef.current.scale + delta / 300));
-      setHandScale(newScale);
+      const newFlex = Math.max(FLEX_MIN, Math.min(FLEX_MAX, resizeStartRef.current.flex + delta / window.innerHeight));
+      setHandFlex(newFlex);
     };
     const handleResizeUp = () => {
       resizingRef.current = false;
@@ -316,11 +316,11 @@ const GameTable: React.FC<GameTableProps> = ({
     resizingRef.current = true;
     resizeStartRef.current = {
       y: e.clientY,
-      scale: handScale,
+      flex: handFlex,
     };
     document.body.style.cursor = 'ns-resize';
     document.body.style.userSelect = 'none';
-  }, [handScale]);
+  }, [handFlex]);
 
   const isMyTurn = gameState.currentTurnIdx === gameState.myIndex;
   const isLeader = gameState.currentLeaderIdx === gameState.myIndex;
@@ -440,7 +440,7 @@ const GameTable: React.FC<GameTableProps> = ({
 
       {/* Main table area */}
       <div className="table-area">
-        <div className="felt-table">
+        <div className="felt-table" style={{ flex: `${1 - handFlex}` }}>
           <div className="felt-center-glow" />
 
           {/* My player info (bottom center, above hand) */}
@@ -645,8 +645,8 @@ const GameTable: React.FC<GameTableProps> = ({
         </div>
 
         {/* My hand */}
-        <div className="my-hand-area" ref={handAreaRef}>
-         <div className="hand-scale-wrapper" style={{ transform: `scale(${handScale})`, transformOrigin: 'top center' }}>
+        <div className="my-hand-area" ref={handAreaRef} style={{ flex: `${handFlex}` }}>
+         <div className="hand-scale-wrapper">
           {phase === GamePhase.FriendDeclaration && isLeader ? (
             <FriendDeclarationUI
               settings={gameState.settings}

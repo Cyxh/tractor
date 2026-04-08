@@ -39,7 +39,6 @@
 }
 
 .felt-table {
-  flex: 1;
   position: relative;
   background:
     radial-gradient(ellipse at center, #2d8a55 0%, #1e6b3a 40%, #145028 70%, #0a3018 100%);
@@ -460,11 +459,17 @@
 .my-hand-area {
   background: var(--bg-medium);
   overflow: visible;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 .hand-scale-wrapper {
   padding: clamp(8px, 1vw, 16px) clamp(12px, 1.5vw, 24px);
   width: 100%;
+  flex: 1;
+  min-height: 0;
+  overflow: visible;
 }
 
 .hand-cards {
