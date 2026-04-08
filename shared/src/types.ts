@@ -304,6 +304,7 @@ export interface PlayerView {
   kittyPickedUp: boolean;
   readyPlayers: string[];           // player IDs who are ready
   chatMessages: ChatMessage[];
+  connectedPlayers?: string[];        // player IDs currently connected
   isSpectator?: boolean;
   spectatorOf?: string | null;
 }

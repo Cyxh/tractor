@@ -128,6 +128,21 @@
   box-shadow: 0 0 12px rgba(240, 192, 64, 0.3);
 }
 
+.seat-disconnected {
+  opacity: 0.5;
+}
+
+.seat-disconnected .avatar-circle {
+  border-color: var(--accent) !important;
+  background: linear-gradient(135deg, #4a2020, #3a1515) !important;
+}
+
+.seat-offline {
+  color: var(--accent);
+  font-size: var(--font-xs);
+  font-weight: 600;
+}
+
 /* Info */
 .seat-info {
   text-align: center;

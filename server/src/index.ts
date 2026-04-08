@@ -564,6 +564,9 @@ wss.on('connection', (ws: WebSocket) => {
             if (acct) setAccountRoom(acct, null, null);
           } else {
             sendRoomUpdate(currentRoomId);
+            if (room.game) {
+              room.broadcastState();
+            }
           }
         }
         playerRooms.delete(playerId);
@@ -585,6 +588,9 @@ wss.on('connection', (ws: WebSocket) => {
           if (acct) setAccountRoom(acct, null, null);
         } else {
           sendRoomUpdate(currentRoomId);
+          if (room.game) {
+            room.broadcastState();
+          }
         }
       }
       playerRooms.delete(playerId);

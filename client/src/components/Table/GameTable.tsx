@@ -468,6 +468,7 @@ const GameTable: React.FC<GameTableProps> = ({
               isLeader={op.originalIdx === gameState.currentLeaderIdx}
               handSize={gameState.handSizes[op.player.id] || 0}
               isMe={seatIdx === 0}
+              isConnected={!gameState.connectedPlayers || gameState.connectedPlayers.includes(op.player.id)}
             />
           ))}
 

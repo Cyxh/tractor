@@ -318,11 +318,12 @@ export class Room {
   }
 
   broadcastState(): void {
+    const connectedPlayers = this.players.filter(p => p.connected).map(p => p.id);
     for (const p of this.players) {
       if (!p.connected) continue;
       const view = this.getPlayerView(p.id);
       if (view) {
-        this.sendToPlayer(p.id, { type: 'game_state', payload: view });
+        this.sendToPlayer(p.id, { type: 'game_state', payload: { ...view, connectedPlayers } });
       }
     }
     // Send spectator view (default to player 0's perspective)
@@ -336,6 +337,7 @@ export class Room {
           const spectatorView = {
             ...view,
             hand: [], // Don't show hand by default
+            connectedPlayers,
             isSpectator: true,
             spectatorOf: null as string | null,
           };
