@@ -26,6 +26,20 @@
   margin-bottom: 24px;
 }
 
+.room-lobby-header > * {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.room-lobby-header > :last-child {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.room-lobby-header .btn-small {
+  min-width: 90px;
+}
+
 .btn-text {
   background: none;
   color: var(--text-dim);
@@ -40,7 +54,7 @@
 .room-code-display {
   display: flex;
   flex-direction: column;
-  align-items: flex-end;
+  align-items: center;
 }
 
 .room-code-label {

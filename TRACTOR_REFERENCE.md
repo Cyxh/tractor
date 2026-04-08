@@ -289,3 +289,4 @@ _Record all edits below so future sessions know what changed._
 | 2026-04-07 | Screen transitions: fade+scale between connecting/lobby/room screens; room exit snapshots via lastRoomData ref | App.tsx, App.css |
 | 2026-04-07 | Room list animations: slide-in for new rooms, slide-out for deleted rooms; server room cleanup on leave/disconnect | LobbyScreen.tsx, LobbyScreen.css, index.ts, useGame.ts |
 | 2026-04-07 | Panel transition system: unified animated switching between auth-select/login/register/guest-lobby/settings panels; "Back to Login" button for guests | LobbyScreen.tsx, LobbyScreen.css |
+| 2026-04-08 | Fix room code position shifting when lock button appears/disappears; 3-column header with centered code | RoomLobby.tsx, RoomLobby.css |

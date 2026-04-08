@@ -42,19 +42,23 @@ const RoomLobby: React.FC<RoomLobbyProps> = ({
       <div className="room-lobby-bg" />
       <div className="room-lobby-content">
         <div className="room-lobby-header">
-          <button className="btn btn-text" onClick={onLeave}>&larr; Leave</button>
+          <div>
+            <button className="btn btn-text" onClick={onLeave}>&larr; Leave</button>
+          </div>
           <div className="room-code-display">
             <span className="room-code-label">Room Code</span>
             <span className="room-code-value">{roomId}</span>
           </div>
-          {isHost && onLockRoom && (
-            <button
-              className={`btn btn-small ${roomInfo.locked ? 'btn-primary' : 'btn-secondary'}`}
-              onClick={() => onLockRoom(!roomInfo.locked)}
-            >
-              {roomInfo.locked ? 'Locked' : 'Lock Room'}
-            </button>
-          )}
+          <div>
+            {isHost && onLockRoom && (
+              <button
+                className={`btn btn-small ${roomInfo.locked ? 'btn-primary' : 'btn-secondary'}`}
+                onClick={() => onLockRoom(!roomInfo.locked)}
+              >
+                {roomInfo.locked ? 'Locked' : 'Lock Room'}
+              </button>
+            )}
+          </div>
         </div>
 
         <div className="room-lobby-body">
