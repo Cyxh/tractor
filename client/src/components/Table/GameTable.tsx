@@ -30,12 +30,14 @@ interface GameTableProps {
   spectators?: { id: string; name: string }[];
   onSpectateAs?: (playerId: string) => void;
   onDevSwitchPlayer?: (targetPlayerId: string) => void;
+  isConnected?: boolean;
 }
 
 const GameTable: React.FC<GameTableProps> = ({
   gameState, playerId, onPlayCards, onBid, onExchangeKitty, onDeclareFriends,
   onNextRound, onVoteRandomKitty, onPickupKitty, onConfirmReady,
-  onSendChat, chatMessages, error, spectators, onSpectateAs, onDevSwitchPlayer
+  onSendChat, chatMessages, error, spectators, onSpectateAs, onDevSwitchPlayer,
+  isConnected = true
 }) => {
   const [selectedCards, setSelectedCards] = useState<Card[]>([]);
   const [dismissedError, setDismissedError] = useState<string | null>(null);
@@ -135,6 +137,27 @@ const GameTable: React.FC<GameTableProps> = ({
 
   // Track newly dealt cards and exiting cards for animation
   const prevHandCardsRef = useRef<Map<string, Card>>(new Map());
+  // FLIP animation: capture card positions before render
+  const prevCardPositions = useRef<Map<string, DOMRect>>(new Map());
+
+  // Capture positions before DOM update (layout effect)
+  const capturePositions = useCallback(() => {
+    const positions = new Map<string, DOMRect>();
+    cardWrappersRef.current.forEach((el, idx) => {
+      if (el) {
+        const cards = cardOrder.length > 0 ? cardOrder : gameState.hand;
+        const card = cards[idx];
+        if (card) positions.set(cardId(card), el.getBoundingClientRect());
+      }
+    });
+    prevCardPositions.current = positions;
+  }, [cardOrder, gameState.hand]);
+
+  // Capture positions before hand changes
+  useEffect(() => {
+    capturePositions();
+  });
+
   useEffect(() => {
     const currentIds = new Set(gameState.hand.map(c => cardId(c)));
     const newIds = new Set<string>();
@@ -161,6 +184,28 @@ const GameTable: React.FC<GameTableProps> = ({
     }
     if (newIds.size > 0) {
       setNewCardIds(newIds);
+      // FLIP: animate existing cards to new positions
+      requestAnimationFrame(() => {
+        cardWrappersRef.current.forEach((el, idx) => {
+          if (!el) return;
+          const cards = cardOrder.length > 0 ? cardOrder : gameState.hand;
+          const card = cards[idx];
+          if (!card) return;
+          const cid = cardId(card);
+          if (newIds.has(cid)) return; // New cards use deal-in animation
+          const oldRect = prevCardPositions.current.get(cid);
+          if (!oldRect) return;
+          const newRect = el.getBoundingClientRect();
+          const dx = oldRect.left - newRect.left;
+          if (Math.abs(dx) < 1) return; // No meaningful movement
+          el.style.transition = 'none';
+          el.style.transform = `translateX(${dx}px)`;
+          requestAnimationFrame(() => {
+            el.style.transition = 'transform 0.25s ease';
+            el.style.transform = '';
+          });
+        });
+      });
       const timer = setTimeout(() => setNewCardIds(new Set()), 350);
       return () => clearTimeout(timer);
     }
@@ -807,6 +852,13 @@ const GameTable: React.FC<GameTableProps> = ({
           }}
         >
           <CardComponent card={dragCard} />
+        </div>
+      )}
+
+      {/* Connection warning */}
+      {!isConnected && (
+        <div className="error-toast connection-warning">
+          Reconnecting to server...
         </div>
       )}
 

@@ -458,7 +458,7 @@
 /* My hand area */
 .my-hand-area {
   background: var(--bg-medium);
-  overflow: visible;
+  overflow: hidden;
   min-height: 0;
   display: flex;
   flex-direction: column;
@@ -469,7 +469,7 @@
   width: 100%;
   flex: 1;
   min-height: 0;
-  overflow: visible;
+  overflow: hidden;
 }
 
 .hand-cards-area {
@@ -594,6 +594,11 @@
 
 .error-toast-close:hover {
   color: white;
+}
+
+.error-toast.connection-warning {
+  background: rgba(214, 158, 46, 0.9);
+  animation: fadeInUp 0.2s ease, pulse 2s ease-in-out infinite;
 }
 
 @keyframes fadeInUp {

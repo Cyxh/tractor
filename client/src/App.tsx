@@ -234,6 +234,7 @@ const App: React.FC = () => {
         spectators={game.spectators}
         onSpectateAs={game.spectateAs}
         onDevSwitchPlayer={game.devSwitchPlayer}
+        isConnected={ws.connected}
       />
       </div>
     );
