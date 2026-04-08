@@ -512,7 +512,7 @@
 }
 
 .hand-card-wrapper.card-hovered {
-  z-index: 10;
+  z-index: 1;
 }
 
 .hand-card-wrapper.card-hovered + .hand-card-wrapper {
