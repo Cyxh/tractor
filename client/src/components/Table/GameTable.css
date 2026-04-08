@@ -466,7 +466,9 @@
 .my-hand-area {
   background: var(--bg-medium);
   overflow: hidden;
-  flex-shrink: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 .hand-scale-wrapper {
