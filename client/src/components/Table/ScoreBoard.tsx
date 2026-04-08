@@ -1,6 +1,6 @@
 import React from 'react';
 import { PlayerView } from 'tractor-shared';
-import { RANK_NAMES } from 'tractor-shared';
+import { RANK_NAMES, getScoreThresholds } from 'tractor-shared';
 import './ScoreBoard.css';
 
 interface ScoreBoardProps {
@@ -11,6 +11,10 @@ interface ScoreBoardProps {
 const ScoreBoard: React.FC<ScoreBoardProps> = ({ gameState, scoreAnimation }) => {
   const atkDelta = scoreAnimation ? gameState.attackingPoints - scoreAnimation.attacking : 0;
   const defDelta = scoreAnimation ? gameState.defendingPoints - scoreAnimation.defending : 0;
+
+  const thresholds = getScoreThresholds(gameState.settings.numDecks);
+  // Attacking needs to reach base*2 (e.g. 80 for 2 decks) to prevent defenders advancing
+  const targetPoints = thresholds.find(t => t.defendingAdvance === 0 && t.attackingAdvance === 0)?.threshold ?? 80;
 
   return (
     <div className="scoreboard">
@@ -35,6 +39,15 @@ const ScoreBoard: React.FC<ScoreBoardProps> = ({ gameState, scoreAnimation }) =>
             )}
           </div>
         </div>
+      </div>
+      <div className="score-target">
+        <div className="score-target-bar">
+          <div
+            className="score-target-fill"
+            style={{ width: `${Math.min(100, (gameState.attackingPoints / targetPoints) * 100)}%` }}
+          />
+        </div>
+        <div className="score-target-label">{gameState.attackingPoints} / {targetPoints} to break even</div>
       </div>
 
       <div className="player-levels">

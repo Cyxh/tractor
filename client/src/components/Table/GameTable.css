@@ -550,13 +550,30 @@
   transform: translateX(-50%);
   background: rgba(229, 62, 62, 0.9);
   color: white;
-  padding: 10px 24px;
+  padding: 10px 36px 10px 24px;
   border-radius: 8px;
   font-size: 13px;
   font-weight: 500;
   z-index: 100;
   backdrop-filter: blur(8px);
   animation: fadeInUp 0.2s ease;
+}
+
+.error-toast-close {
+  position: absolute;
+  top: 2px;
+  right: 6px;
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 16px;
+  cursor: pointer;
+  padding: 2px 4px;
+  line-height: 1;
+}
+
+.error-toast-close:hover {
+  color: white;
 }
 
 @keyframes fadeInUp {

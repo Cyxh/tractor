@@ -31,6 +31,7 @@ const RoomLobby: React.FC<RoomLobbyProps> = ({
 }) => {
   const isHost = playerId === roomInfo.hostId;
   const [starting, setStarting] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   const handleStart = () => {
     setStarting(true);
@@ -45,8 +46,16 @@ const RoomLobby: React.FC<RoomLobbyProps> = ({
           <div>
             <button className="btn btn-text" onClick={onLeave}>&larr; Leave</button>
           </div>
-          <div className="room-code-display">
-            <span className="room-code-label">Room Code</span>
+          <div
+            className="room-code-display"
+            onClick={() => {
+              navigator.clipboard.writeText(roomId);
+              setCopied(true);
+              setTimeout(() => setCopied(false), 1500);
+            }}
+            title="Click to copy"
+          >
+            <span className="room-code-label">{copied ? 'Copied!' : 'Room Code'}</span>
             <span className="room-code-value">{roomId}</span>
           </div>
           <div>

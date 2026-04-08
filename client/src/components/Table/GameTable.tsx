@@ -37,6 +37,7 @@ const GameTable: React.FC<GameTableProps> = ({
   onSendChat, chatMessages, error, spectators, onSpectateAs
 }) => {
   const [selectedCards, setSelectedCards] = useState<Card[]>([]);
+  const [dismissedError, setDismissedError] = useState<string | null>(null);
   const prevHandRef = useRef<Set<string>>(new Set());
   const [newCardIds, setNewCardIds] = useState<Set<string>>(new Set());
   const [hoveredCardIdx, setHoveredCardIdx] = useState<number | null>(null);
@@ -754,8 +755,11 @@ const GameTable: React.FC<GameTableProps> = ({
       )}
 
       {/* Error toast */}
-      {error && (
-        <div className="error-toast">{error}</div>
+      {error && error !== dismissedError && (
+        <div className="error-toast">
+          {error}
+          <button className="error-toast-close" onClick={() => setDismissedError(error)}>&times;</button>
+        </div>
       )}
     </div>
   );
