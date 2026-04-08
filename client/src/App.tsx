@@ -130,7 +130,7 @@ const App: React.FC = () => {
   const game = useGame(ws);
   useSound(ws, false);
 
-  const target = getTargetScreen(ws.connected, game.gameState, game.roomId, game.roomInfo, game.playerId);
+  const target = getTargetScreen(ws.stableConnected, game.gameState, game.roomId, game.roomInfo, game.playerId);
 
   // Track previous screen for transition direction
   const [displayedScreen, setDisplayedScreen] = useState<Screen>(target);

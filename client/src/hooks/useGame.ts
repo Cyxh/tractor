@@ -91,6 +91,13 @@ export function useGame(ws: { send: (msg: any) => void; on: (type: string, handl
     }
   }, []);
 
+  // Reset rejoin flag on disconnect so we rejoin on reconnect
+  useEffect(() => {
+    if (!ws.connected) {
+      setAttemptedRejoin(false);
+    }
+  }, [ws.connected]);
+
   // Attempt rejoin on connect
   useEffect(() => {
     if (!ws.connected || attemptedRejoin) return;
