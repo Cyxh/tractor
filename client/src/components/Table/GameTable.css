@@ -494,7 +494,7 @@
 .hand-cards {
   display: flex;
   justify-content: center;
-  padding: 8px 0 4px;
+  padding: 20px 0 8px;
   flex-wrap: nowrap;
   overflow-x: auto;
   overflow-y: visible;
@@ -516,7 +516,7 @@
 }
 
 .hand-card-wrapper.card-hovered + .hand-card-wrapper {
-  margin-left: clamp(-24px, -1.5vw, -16px);
+  /* no horizontal spread — vertical motion only */
 }
 
 .hand-card-wrapper.card-dragging {

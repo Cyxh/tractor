@@ -493,6 +493,11 @@ const GameTable: React.FC<GameTableProps> = ({
     <div className="game-table-container">
       {/* Score and info panel */}
       <div className="table-sidebar">
+        {onLeave && (
+          <button className="btn btn-secondary btn-leave-game" onClick={onLeave}>
+            Leave Room
+          </button>
+        )}
         <TrumpIndicator trumpInfo={gameState.trumpInfo} />
         <ScoreBoard gameState={gameState} scoreAnimation={scoreAnimation} />
         {/* Dev mode player switcher */}
@@ -862,11 +867,6 @@ const GameTable: React.FC<GameTableProps> = ({
 
       {/* Chat sidebar */}
       <div className="chat-sidebar">
-        {onLeave && (
-          <button className="btn btn-secondary btn-leave-game" onClick={onLeave}>
-            Leave Room
-          </button>
-        )}
         <ChatPanel messages={chatMessages} onSend={onSendChat} compact />
       </div>
 
