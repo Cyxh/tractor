@@ -5,7 +5,7 @@ import { createServer } from 'http';
 import { WebSocketServer, WebSocket } from 'ws';
 import { RoomManager } from './room.js';
 import { ClientMessage } from 'tractor-shared';
-import { register, login, validateToken, setAccountRoom, getAccountSession, changeUsername, changePassword } from './accounts.js';
+import { register, login, validateToken, setAccountRoom, getAccountSession, changeUsername, changePassword, getAccountEmail, requestEmailVerification, verifyEmailCode, unlinkEmail, requestPasswordReset, resetPassword } from './accounts.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -83,6 +83,65 @@ app.post('/api/change-password', (req, res) => {
   const { currentPassword, newPassword } = req.body;
   if (!currentPassword || !newPassword) { res.status(400).json({ error: 'Current and new password required' }); return; }
   const result = changePassword(username, currentPassword, newPassword);
+  if (!result.success) { res.status(400).json({ error: result.error }); return; }
+  res.json({ success: true });
+});
+
+// Email verification endpoints
+app.get('/api/account-email', (req, res) => {
+  const token = req.headers.authorization?.replace('Bearer ', '');
+  if (!token) { res.status(401).json({ error: 'No token' }); return; }
+  const username = validateToken(token);
+  if (!username) { res.status(401).json({ error: 'Invalid token' }); return; }
+  res.json(getAccountEmail(username));
+});
+
+app.post('/api/request-email-verification', async (req, res) => {
+  const token = req.headers.authorization?.replace('Bearer ', '');
+  if (!token) { res.status(401).json({ error: 'No token' }); return; }
+  const username = validateToken(token);
+  if (!username) { res.status(401).json({ error: 'Invalid token' }); return; }
+  const { email } = req.body;
+  if (!email) { res.status(400).json({ error: 'Email required' }); return; }
+  const result = await requestEmailVerification(username, email);
+  if (!result.success) { res.status(400).json({ error: result.error }); return; }
+  res.json({ success: true });
+});
+
+app.post('/api/verify-email', (req, res) => {
+  const token = req.headers.authorization?.replace('Bearer ', '');
+  if (!token) { res.status(401).json({ error: 'No token' }); return; }
+  const username = validateToken(token);
+  if (!username) { res.status(401).json({ error: 'Invalid token' }); return; }
+  const { code } = req.body;
+  if (!code) { res.status(400).json({ error: 'Code required' }); return; }
+  const result = verifyEmailCode(username, code);
+  if (!result.success) { res.status(400).json({ error: result.error }); return; }
+  res.json({ success: true });
+});
+
+app.post('/api/unlink-email', (req, res) => {
+  const token = req.headers.authorization?.replace('Bearer ', '');
+  if (!token) { res.status(401).json({ error: 'No token' }); return; }
+  const username = validateToken(token);
+  if (!username) { res.status(401).json({ error: 'Invalid token' }); return; }
+  const result = unlinkEmail(username);
+  if (!result.success) { res.status(400).json({ error: result.error }); return; }
+  res.json({ success: true });
+});
+
+// Password reset (no auth required)
+app.post('/api/request-password-reset', async (req, res) => {
+  const { email } = req.body;
+  if (!email) { res.status(400).json({ error: 'Email required' }); return; }
+  const result = await requestPasswordReset(email);
+  res.json({ success: true }); // Always success to not leak info
+});
+
+app.post('/api/reset-password', (req, res) => {
+  const { email, code, newPassword } = req.body;
+  if (!email || !code || !newPassword) { res.status(400).json({ error: 'Email, code, and new password required' }); return; }
+  const result = resetPassword(email, code, newPassword);
   if (!result.success) { res.status(400).json({ error: result.error }); return; }
   res.json({ success: true });
 });
@@ -399,7 +458,7 @@ wss.on('connection', (ws: WebSocket) => {
         const room = roomManager.getRoom(currentRoomId);
         if (room) {
           room.removePlayer(playerId);
-          if ((room.players.length === 0 || room.allDisconnected()) && (!room.game || room.game.state.phase === GamePhase.Lobby)) {
+          if (room.players.length === 0 || room.allDisconnected()) {
             roomManager.removeRoom(currentRoomId);
             const acct = playerAccounts.get(playerId);
             if (acct) setAccountRoom(acct, null, null);
@@ -420,9 +479,8 @@ wss.on('connection', (ws: WebSocket) => {
       const room = roomManager.getRoom(currentRoomId);
       if (room) {
         room.removePlayer(playerId);
-        if ((room.players.length === 0 || room.allDisconnected()) && (!room.game || room.game.state.phase === GamePhase.Lobby)) {
+        if (room.players.length === 0 || room.allDisconnected()) {
           roomManager.removeRoom(currentRoomId);
-          // Clear account room since room is gone
           const acct = playerAccounts.get(playerId);
           if (acct) setAccountRoom(acct, null, null);
         } else {
@@ -446,6 +504,18 @@ function broadcastRoomList() {
 }
 
 import { GamePhase } from 'tractor-shared';
+
+// Periodic cleanup: remove rooms where all players are disconnected
+setInterval(() => {
+  let changed = false;
+  for (const room of roomManager.getAllRooms()) {
+    if (room.players.length === 0 || room.allDisconnected()) {
+      roomManager.removeRoom(room.id);
+      changed = true;
+    }
+  }
+  if (changed) broadcastRoomList();
+}, 30000);
 
 // SPA fallback — serve index.html for all non-API routes
 app.get('*', (_req, res) => {

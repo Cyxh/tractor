@@ -20,10 +20,17 @@ interface LobbyScreenProps {
   onLogout: () => void;
   onChangeUsername: (newUsername: string) => Promise<{ error?: string }>;
   onChangePassword: (currentPassword: string, newPassword: string) => Promise<{ error?: string }>;
+  onGetAccountEmail: () => Promise<{ email: string | null; emailVerified: boolean; error?: string }>;
+  onRequestEmailVerification: (email: string) => Promise<{ error?: string }>;
+  onVerifyEmail: (code: string) => Promise<{ error?: string }>;
+  onUnlinkEmail: () => Promise<{ error?: string }>;
+  onRequestPasswordReset: (email: string) => Promise<{ error?: string }>;
+  onResetPassword: (email: string, code: string, newPassword: string) => Promise<{ error?: string }>;
 }
 
 const LobbyScreen: React.FC<LobbyScreenProps> = ({
-  roomList, onCreateRoom, onJoinRoom, authUser, onLogin, onRegister, onLogout, onChangeUsername, onChangePassword
+  roomList, onCreateRoom, onJoinRoom, authUser, onLogin, onRegister, onLogout, onChangeUsername, onChangePassword,
+  onGetAccountEmail, onRequestEmailVerification, onVerifyEmail, onUnlinkEmail, onRequestPasswordReset, onResetPassword
 }) => {
   const [playerName, setPlayerName] = useState(authUser?.username || '');
   const [joinRoomId, setJoinRoomId] = useState('');
@@ -33,13 +40,27 @@ const LobbyScreen: React.FC<LobbyScreenProps> = ({
   const [authError, setAuthError] = useState('');
   const [authLoading, setAuthLoading] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
-  const [settingsTab, setSettingsTab] = useState<'username' | 'password'>('username');
+  const [settingsTab, setSettingsTab] = useState<'username' | 'password' | 'email'>('username');
   const [newUsername, setNewUsername] = useState('');
   const [currentPw, setCurrentPw] = useState('');
   const [newPw, setNewPw] = useState('');
   const [settingsError, setSettingsError] = useState('');
   const [settingsSuccess, setSettingsSuccess] = useState('');
   const [settingsLoading, setSettingsLoading] = useState(false);
+  // Email state
+  const [accountEmail, setAccountEmail] = useState<string | null>(null);
+  const [emailVerified, setEmailVerified] = useState(false);
+  const [emailInput, setEmailInput] = useState('');
+  const [emailCode, setEmailCode] = useState('');
+  const [emailCodeSent, setEmailCodeSent] = useState(false);
+  // Forgot password state
+  const [forgotMode, setForgotMode] = useState<'email' | 'code' | null>(null);
+  const [forgotEmail, setForgotEmail] = useState('');
+  const [forgotCode, setForgotCode] = useState('');
+  const [forgotNewPw, setForgotNewPw] = useState('');
+  const [forgotError, setForgotError] = useState('');
+  const [forgotSuccess, setForgotSuccess] = useState('');
+  const [forgotLoading, setForgotLoading] = useState(false);
 
   // Pip positions (same as Card.tsx)
   const pipPositions: Record<string, [number, number][]> = useMemo(() => ({
@@ -101,9 +122,10 @@ const LobbyScreen: React.FC<LobbyScreenProps> = ({
   }, []);
 
   // Panel transition system for smooth switching between auth screens
-  type Panel = 'auth-select' | 'login' | 'register' | 'guest-lobby' | 'settings';
+  type Panel = 'auth-select' | 'login' | 'register' | 'guest-lobby' | 'settings' | 'forgot-password';
   const getPanel = (): Panel => {
     if (showSettings && authUser) return 'settings';
+    if (forgotMode) return 'forgot-password';
     if (authMode === null) return 'auth-select';
     if (authMode === 'login') return 'login';
     if (authMode === 'register') return 'register';
@@ -278,17 +300,26 @@ const LobbyScreen: React.FC<LobbyScreenProps> = ({
         {floatingCards.map(renderFloatingCard)}
       </div>
       <div className="lobby-sparkles" aria-hidden>
-        {Array.from({ length: 25 }, (_, i) => (
-          <div
-            key={i}
-            className="sparkle"
-            style={{
-              left: `${(i * 4.1 + 1) % 100}%`,
-              top: `${(i * 7.3 + 3) % 100}%`,
-              animationDelay: `${i * 0.4}s`,
-            }}
-          />
-        ))}
+        {Array.from({ length: 25 }, (_, i) => {
+          // Pseudo-random positions using a simple hash
+          const px = ((i * 37 + 13) * 97) % 100;
+          const py = ((i * 53 + 7) * 83) % 100;
+          const size = 2 + ((i * 11) % 3);
+          return (
+            <div
+              key={i}
+              className="sparkle"
+              style={{
+                left: `${px}%`,
+                top: `${py}%`,
+                width: size,
+                height: size,
+                animationDelay: `${(i * 0.4) + ((i * 17) % 5) * 0.3}s`,
+                animationDuration: `${2.5 + ((i * 13) % 4) * 0.5}s`,
+              }}
+            />
+          );
+        })}
       </div>
     </>
   );
@@ -359,13 +390,22 @@ const LobbyScreen: React.FC<LobbyScreenProps> = ({
     }
   };
 
-  const openSettings = () => {
+  const openSettings = async () => {
     setShowSettings(true);
     setSettingsError('');
     setSettingsSuccess('');
     setNewUsername('');
     setCurrentPw('');
     setNewPw('');
+    setEmailInput('');
+    setEmailCode('');
+    setEmailCodeSent(false);
+    // Load email info
+    const info = await onGetAccountEmail();
+    if (!info.error) {
+      setAccountEmail(info.email);
+      setEmailVerified(info.emailVerified);
+    }
   };
 
   // Subtitle per panel — use target panel during 'out' phase so it updates at the midpoint
@@ -374,6 +414,7 @@ const LobbyScreen: React.FC<LobbyScreenProps> = ({
     return p === 'settings' ? 'Account Settings'
       : p === 'login' ? 'Log In'
       : p === 'register' ? 'Create Account'
+      : p === 'forgot-password' ? 'Reset Password'
       : 'Sheng Ji / Finding Friends Online';
   });
   const [subtitleFading, setSubtitleFading] = useState(false);
@@ -386,6 +427,7 @@ const LobbyScreen: React.FC<LobbyScreenProps> = ({
     const newSub = displayedPanel === 'settings' ? 'Account Settings'
       : displayedPanel === 'login' ? 'Log In'
       : displayedPanel === 'register' ? 'Create Account'
+      : displayedPanel === 'forgot-password' ? 'Reset Password'
       : 'Sheng Ji / Finding Friends Online';
     if (newSub !== displayedSubtitle) {
       setSubtitleFading(true);
@@ -416,6 +458,12 @@ const LobbyScreen: React.FC<LobbyScreenProps> = ({
                 onClick={() => { setSettingsTab('password'); setSettingsError(''); setSettingsSuccess(''); }}
               >
                 Change Password
+              </button>
+              <button
+                className={`settings-tab ${settingsTab === 'email' ? 'active' : ''}`}
+                onClick={() => { setSettingsTab('email'); setSettingsError(''); setSettingsSuccess(''); }}
+              >
+                Email
               </button>
             </div>
 
@@ -460,17 +508,135 @@ const LobbyScreen: React.FC<LobbyScreenProps> = ({
               </div>
             )}
 
+            {settingsTab === 'email' && (
+              <div className="lobby-section" style={{ marginTop: 16 }}>
+                {accountEmail && emailVerified ? (
+                  <>
+                    <label className="lobby-label">Linked Email</label>
+                    <div className="settings-current-value">{accountEmail}</div>
+                    <button
+                      className="btn btn-text"
+                      style={{ marginTop: 8 }}
+                      onClick={async () => {
+                        setSettingsLoading(true);
+                        const result = await onUnlinkEmail();
+                        setSettingsLoading(false);
+                        if (result.error) setSettingsError(result.error);
+                        else { setAccountEmail(null); setEmailVerified(false); setSettingsSuccess('Email unlinked'); }
+                      }}
+                      disabled={settingsLoading}
+                    >
+                      Unlink Email
+                    </button>
+                  </>
+                ) : !emailCodeSent ? (
+                  <>
+                    <label className="lobby-label">Link Email (for password recovery)</label>
+                    <input
+                      className="lobby-input"
+                      type="email"
+                      placeholder="Enter email address..."
+                      value={emailInput}
+                      onChange={e => setEmailInput(e.target.value)}
+                      onKeyDown={async e => {
+                        if (e.key === 'Enter' && emailInput.trim()) {
+                          setSettingsLoading(true);
+                          setSettingsError('');
+                          const result = await onRequestEmailVerification(emailInput.trim());
+                          setSettingsLoading(false);
+                          if (result.error) setSettingsError(result.error);
+                          else setEmailCodeSent(true);
+                        }
+                      }}
+                      autoFocus
+                    />
+                  </>
+                ) : (
+                  <>
+                    <label className="lobby-label">Verification code sent to {emailInput}</label>
+                    <input
+                      className="lobby-input"
+                      type="text"
+                      placeholder="Enter 6-digit code..."
+                      value={emailCode}
+                      onChange={e => setEmailCode(e.target.value)}
+                      onKeyDown={async e => {
+                        if (e.key === 'Enter' && emailCode.trim()) {
+                          setSettingsLoading(true);
+                          setSettingsError('');
+                          const result = await onVerifyEmail(emailCode.trim());
+                          setSettingsLoading(false);
+                          if (result.error) setSettingsError(result.error);
+                          else {
+                            setAccountEmail(emailInput.trim().toLowerCase());
+                            setEmailVerified(true);
+                            setEmailCodeSent(false);
+                            setSettingsSuccess('Email verified and linked!');
+                          }
+                        }
+                      }}
+                      maxLength={6}
+                      autoFocus
+                    />
+                  </>
+                )}
+              </div>
+            )}
+
             {settingsError && <div className="auth-error">{settingsError}</div>}
             {settingsSuccess && <div className="settings-success">{settingsSuccess}</div>}
 
             <div className="lobby-actions">
-              <button
-                className="btn btn-primary lobby-btn"
-                onClick={settingsTab === 'username' ? handleChangeUsername : handleChangePassword}
-                disabled={settingsLoading || (settingsTab === 'username' ? !newUsername.trim() : !currentPw || !newPw)}
-              >
-                {settingsLoading ? 'Saving...' : 'Save Changes'}
-              </button>
+              {settingsTab === 'email' ? (
+                !accountEmail || !emailVerified ? (
+                  !emailCodeSent ? (
+                    <button
+                      className="btn btn-primary lobby-btn"
+                      onClick={async () => {
+                        if (!emailInput.trim()) return;
+                        setSettingsLoading(true);
+                        setSettingsError('');
+                        const result = await onRequestEmailVerification(emailInput.trim());
+                        setSettingsLoading(false);
+                        if (result.error) setSettingsError(result.error);
+                        else setEmailCodeSent(true);
+                      }}
+                      disabled={settingsLoading || !emailInput.trim()}
+                    >
+                      {settingsLoading ? 'Sending...' : 'Send Verification Code'}
+                    </button>
+                  ) : (
+                    <button
+                      className="btn btn-primary lobby-btn"
+                      onClick={async () => {
+                        if (!emailCode.trim()) return;
+                        setSettingsLoading(true);
+                        setSettingsError('');
+                        const result = await onVerifyEmail(emailCode.trim());
+                        setSettingsLoading(false);
+                        if (result.error) setSettingsError(result.error);
+                        else {
+                          setAccountEmail(emailInput.trim().toLowerCase());
+                          setEmailVerified(true);
+                          setEmailCodeSent(false);
+                          setSettingsSuccess('Email verified and linked!');
+                        }
+                      }}
+                      disabled={settingsLoading || !emailCode.trim()}
+                    >
+                      {settingsLoading ? 'Verifying...' : 'Verify Code'}
+                    </button>
+                  )
+                ) : null
+              ) : (
+                <button
+                  className="btn btn-primary lobby-btn"
+                  onClick={settingsTab === 'username' ? handleChangeUsername : handleChangePassword}
+                  disabled={settingsLoading || (settingsTab === 'username' ? !newUsername.trim() : !currentPw || !newPw)}
+                >
+                  {settingsLoading ? 'Saving...' : 'Save Changes'}
+                </button>
+              )}
               <button className="btn btn-text" onClick={() => setShowSettings(false)}>
                 &larr; Back to Lobby
               </button>
@@ -534,6 +700,130 @@ const LobbyScreen: React.FC<LobbyScreenProps> = ({
               </button>
               <button className="btn btn-text" onClick={() => { setAuthMode(null); setAuthError(''); }}>
                 &larr; Back
+              </button>
+              {displayedPanel === 'login' && (
+                <button className="btn btn-text" style={{ marginTop: 4 }} onClick={() => {
+                  setForgotMode('email');
+                  setForgotEmail('');
+                  setForgotCode('');
+                  setForgotNewPw('');
+                  setForgotError('');
+                  setForgotSuccess('');
+                }}>
+                  Forgot Password?
+                </button>
+              )}
+            </div>
+          </div>
+        );
+
+      case 'forgot-password':
+        return (
+          <div className="lobby-card">
+            {forgotMode === 'email' && (
+              <div className="lobby-section">
+                <label className="lobby-label">Enter your account's linked email</label>
+                <input
+                  className="lobby-input"
+                  type="email"
+                  placeholder="Enter email address..."
+                  value={forgotEmail}
+                  onChange={e => setForgotEmail(e.target.value)}
+                  onKeyDown={async e => {
+                    if (e.key === 'Enter' && forgotEmail.trim()) {
+                      setForgotLoading(true);
+                      setForgotError('');
+                      const result = await onRequestPasswordReset(forgotEmail.trim());
+                      setForgotLoading(false);
+                      if (result.error) setForgotError(result.error);
+                      else setForgotMode('code');
+                    }
+                  }}
+                  autoFocus
+                />
+              </div>
+            )}
+            {forgotMode === 'code' && (
+              <>
+                <div className="lobby-section">
+                  <label className="lobby-label">Reset code sent to {forgotEmail}</label>
+                  <input
+                    className="lobby-input"
+                    type="text"
+                    placeholder="Enter 6-digit code..."
+                    value={forgotCode}
+                    onChange={e => setForgotCode(e.target.value)}
+                    maxLength={6}
+                    autoFocus
+                  />
+                </div>
+                <div className="lobby-section">
+                  <label className="lobby-label">New Password</label>
+                  <input
+                    className="lobby-input"
+                    type="password"
+                    placeholder="Enter new password..."
+                    value={forgotNewPw}
+                    onChange={e => setForgotNewPw(e.target.value)}
+                    onKeyDown={async e => {
+                      if (e.key === 'Enter' && forgotCode.trim() && forgotNewPw) {
+                        setForgotLoading(true);
+                        setForgotError('');
+                        const result = await onResetPassword(forgotEmail.trim(), forgotCode.trim(), forgotNewPw);
+                        setForgotLoading(false);
+                        if (result.error) setForgotError(result.error);
+                        else {
+                          setForgotSuccess('Password reset! You can now log in.');
+                          setTimeout(() => { setForgotMode(null); setAuthMode('login'); }, 2000);
+                        }
+                      }
+                    }}
+                  />
+                </div>
+              </>
+            )}
+            {forgotError && <div className="auth-error">{forgotError}</div>}
+            {forgotSuccess && <div className="settings-success">{forgotSuccess}</div>}
+            <div className="lobby-actions">
+              {forgotMode === 'email' && (
+                <button
+                  className="btn btn-primary lobby-btn"
+                  onClick={async () => {
+                    if (!forgotEmail.trim()) return;
+                    setForgotLoading(true);
+                    setForgotError('');
+                    const result = await onRequestPasswordReset(forgotEmail.trim());
+                    setForgotLoading(false);
+                    if (result.error) setForgotError(result.error);
+                    else setForgotMode('code');
+                  }}
+                  disabled={forgotLoading || !forgotEmail.trim()}
+                >
+                  {forgotLoading ? 'Sending...' : 'Send Reset Code'}
+                </button>
+              )}
+              {forgotMode === 'code' && (
+                <button
+                  className="btn btn-primary lobby-btn"
+                  onClick={async () => {
+                    if (!forgotCode.trim() || !forgotNewPw) return;
+                    setForgotLoading(true);
+                    setForgotError('');
+                    const result = await onResetPassword(forgotEmail.trim(), forgotCode.trim(), forgotNewPw);
+                    setForgotLoading(false);
+                    if (result.error) setForgotError(result.error);
+                    else {
+                      setForgotSuccess('Password reset! You can now log in.');
+                      setTimeout(() => { setForgotMode(null); setAuthMode('login'); }, 2000);
+                    }
+                  }}
+                  disabled={forgotLoading || !forgotCode.trim() || !forgotNewPw}
+                >
+                  {forgotLoading ? 'Resetting...' : 'Reset Password'}
+                </button>
+              )}
+              <button className="btn btn-text" onClick={() => { setForgotMode(null); }}>
+                &larr; Back to Login
               </button>
             </div>
           </div>

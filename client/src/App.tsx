@@ -260,6 +260,12 @@ const App: React.FC = () => {
         onLogout={game.authLogout}
         onChangeUsername={game.changeUsername}
         onChangePassword={game.changePassword}
+        onGetAccountEmail={game.getAccountEmail}
+        onRequestEmailVerification={game.requestEmailVerification}
+        onVerifyEmail={game.verifyEmail}
+        onUnlinkEmail={game.unlinkEmail}
+        onRequestPasswordReset={game.requestPasswordReset}
+        onResetPassword={game.resetPassword}
       />
     </div>
   );

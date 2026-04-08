@@ -229,6 +229,82 @@ export function useGame(ws: { send: (msg: any) => void; on: (type: string, handl
     }
   }, [authToken]);
 
+  const getAccountEmail = useCallback(async (): Promise<{ email: string | null; emailVerified: boolean; error?: string }> => {
+    if (!authToken) return { email: null, emailVerified: false, error: 'Not logged in' };
+    try {
+      const res = await fetch('/api/account-email', { headers: { Authorization: `Bearer ${authToken}` } });
+      const data = await res.json();
+      if (!res.ok) return { email: null, emailVerified: false, error: data.error };
+      return data;
+    } catch { return { email: null, emailVerified: false, error: 'Network error' }; }
+  }, [authToken]);
+
+  const requestEmailVerification = useCallback(async (email: string): Promise<{ error?: string }> => {
+    if (!authToken) return { error: 'Not logged in' };
+    try {
+      const res = await fetch('/api/request-email-verification', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${authToken}` },
+        body: JSON.stringify({ email }),
+      });
+      const data = await res.json();
+      if (!res.ok) return { error: data.error || 'Failed' };
+      return {};
+    } catch { return { error: 'Network error' }; }
+  }, [authToken]);
+
+  const verifyEmail = useCallback(async (code: string): Promise<{ error?: string }> => {
+    if (!authToken) return { error: 'Not logged in' };
+    try {
+      const res = await fetch('/api/verify-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${authToken}` },
+        body: JSON.stringify({ code }),
+      });
+      const data = await res.json();
+      if (!res.ok) return { error: data.error || 'Failed' };
+      return {};
+    } catch { return { error: 'Network error' }; }
+  }, [authToken]);
+
+  const unlinkEmail = useCallback(async (): Promise<{ error?: string }> => {
+    if (!authToken) return { error: 'Not logged in' };
+    try {
+      const res = await fetch('/api/unlink-email', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${authToken}` },
+      });
+      const data = await res.json();
+      if (!res.ok) return { error: data.error || 'Failed' };
+      return {};
+    } catch { return { error: 'Network error' }; }
+  }, [authToken]);
+
+  const requestPasswordReset = useCallback(async (email: string): Promise<{ error?: string }> => {
+    try {
+      const res = await fetch('/api/request-password-reset', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+      if (!res.ok) { const data = await res.json(); return { error: data.error || 'Failed' }; }
+      return {};
+    } catch { return { error: 'Network error' }; }
+  }, []);
+
+  const resetPassword = useCallback(async (email: string, code: string, newPassword: string): Promise<{ error?: string }> => {
+    try {
+      const res = await fetch('/api/reset-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, code, newPassword }),
+      });
+      const data = await res.json();
+      if (!res.ok) return { error: data.error || 'Failed' };
+      return {};
+    } catch { return { error: 'Network error' }; }
+  }, []);
+
   const changePassword = useCallback(async (currentPassword: string, newPassword: string): Promise<{ error?: string }> => {
     if (!authToken) return { error: 'Not logged in' };
     try {
@@ -336,6 +412,12 @@ export function useGame(ws: { send: (msg: any) => void; on: (type: string, handl
     authLogout,
     changeUsername,
     changePassword,
+    getAccountEmail,
+    requestEmailVerification,
+    verifyEmail,
+    unlinkEmail,
+    requestPasswordReset,
+    resetPassword,
     createRoom,
     joinRoom,
     updateSettings,

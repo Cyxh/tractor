@@ -2,6 +2,7 @@ import { randomBytes, createHash } from 'crypto';
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
+import nodemailer from 'nodemailer';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const DATA_DIR = join(__dirname, '..', '..', 'data');
@@ -15,11 +16,55 @@ interface Account {
   // Active session tracking
   currentRoomId: string | null;
   currentPlayerName: string | null;
+  // Email (optional)
+  email: string | null;
+  emailVerified: boolean;
 }
 
 interface TokenEntry {
   username: string;
   createdAt: number;
+}
+
+// Verification/reset codes: key = email or username, value = { code, expiresAt, username? }
+interface PendingCode {
+  code: string;
+  expiresAt: number;
+  username: string;
+  email?: string;
+}
+const pendingEmailCodes = new Map<string, PendingCode>(); // key = username (for verify)
+const pendingResetCodes = new Map<string, PendingCode>();  // key = email (for reset)
+
+// SMTP transporter — configured via env vars
+function createMailTransporter() {
+  const host = process.env.SMTP_HOST;
+  const port = parseInt(process.env.SMTP_PORT || '587');
+  const user = process.env.SMTP_USER;
+  const pass = process.env.SMTP_PASS;
+  if (!host || !user || !pass) return null;
+  return nodemailer.createTransport({
+    host, port,
+    secure: port === 465,
+    auth: { user, pass },
+  });
+}
+
+const mailFrom = process.env.SMTP_FROM || process.env.SMTP_USER || 'noreply@tractor.game';
+
+async function sendMail(to: string, subject: string, text: string): Promise<boolean> {
+  const transporter = createMailTransporter();
+  if (!transporter) {
+    console.error('SMTP not configured (set SMTP_HOST, SMTP_USER, SMTP_PASS)');
+    return false;
+  }
+  try {
+    await transporter.sendMail({ from: mailFrom, to, subject, text });
+    return true;
+  } catch (e) {
+    console.error('Failed to send email:', e);
+    return false;
+  }
 }
 
 // In-memory token store (tokens don't survive restart, but accounts do — users just re-login)
@@ -81,6 +126,8 @@ export function register(username: string, password: string): { success: boolean
     createdAt: Date.now(),
     currentRoomId: null,
     currentPlayerName: null,
+    email: null,
+    emailVerified: false,
   });
   saveAccounts();
 
@@ -194,6 +241,144 @@ export function changePassword(username: string, currentPassword: string, newPas
   const newSalt = randomBytes(16).toString('hex');
   account.salt = newSalt;
   account.passwordHash = hashPassword(newPassword, newSalt);
+  saveAccounts();
+  return { success: true };
+}
+
+// ===== EMAIL VERIFICATION =====
+
+function generateCode(): string {
+  return Math.floor(100000 + Math.random() * 900000).toString();
+}
+
+export function getAccountEmail(username: string): { email: string | null; emailVerified: boolean } {
+  const account = accounts.get(username.trim().toLowerCase());
+  if (!account) return { email: null, emailVerified: false };
+  return { email: account.email, emailVerified: account.emailVerified };
+}
+
+export async function requestEmailVerification(username: string, email: string): Promise<{ success: boolean; error?: string }> {
+  const normalized = username.trim().toLowerCase();
+  const account = accounts.get(normalized);
+  if (!account) return { success: false, error: 'Account not found' };
+
+  const emailLower = email.trim().toLowerCase();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailLower)) {
+    return { success: false, error: 'Invalid email address' };
+  }
+
+  // Check if email is already used by another account
+  for (const [key, acct] of accounts) {
+    if (key !== normalized && acct.email === emailLower && acct.emailVerified) {
+      return { success: false, error: 'Email already linked to another account' };
+    }
+  }
+
+  const code = generateCode();
+  pendingEmailCodes.set(normalized, {
+    code,
+    expiresAt: Date.now() + 10 * 60 * 1000, // 10 minutes
+    username: normalized,
+    email: emailLower,
+  });
+
+  const sent = await sendMail(
+    emailLower,
+    'Tractor - Email Verification Code',
+    `Your verification code is: ${code}\n\nThis code expires in 10 minutes.\n\nIf you didn't request this, you can ignore this email.`
+  );
+
+  if (!sent) return { success: false, error: 'Failed to send email. SMTP may not be configured.' };
+  return { success: true };
+}
+
+export function verifyEmailCode(username: string, code: string): { success: boolean; error?: string } {
+  const normalized = username.trim().toLowerCase();
+  const pending = pendingEmailCodes.get(normalized);
+  if (!pending) return { success: false, error: 'No verification pending' };
+  if (Date.now() > pending.expiresAt) {
+    pendingEmailCodes.delete(normalized);
+    return { success: false, error: 'Code expired' };
+  }
+  if (pending.code !== code.trim()) {
+    return { success: false, error: 'Invalid code' };
+  }
+
+  const account = accounts.get(normalized);
+  if (!account) return { success: false, error: 'Account not found' };
+
+  account.email = pending.email!;
+  account.emailVerified = true;
+  pendingEmailCodes.delete(normalized);
+  saveAccounts();
+  return { success: true };
+}
+
+export function unlinkEmail(username: string): { success: boolean; error?: string } {
+  const normalized = username.trim().toLowerCase();
+  const account = accounts.get(normalized);
+  if (!account) return { success: false, error: 'Account not found' };
+  account.email = null;
+  account.emailVerified = false;
+  saveAccounts();
+  return { success: true };
+}
+
+// ===== PASSWORD RESET =====
+
+export async function requestPasswordReset(email: string): Promise<{ success: boolean; error?: string }> {
+  const emailLower = email.trim().toLowerCase();
+
+  // Find account with this verified email
+  let targetAccount: Account | null = null;
+  for (const acct of accounts.values()) {
+    if (acct.email === emailLower && acct.emailVerified) {
+      targetAccount = acct;
+      break;
+    }
+  }
+
+  // Always return success to not leak whether an email exists
+  if (!targetAccount) return { success: true };
+
+  const code = generateCode();
+  pendingResetCodes.set(emailLower, {
+    code,
+    expiresAt: Date.now() + 10 * 60 * 1000,
+    username: targetAccount.username,
+  });
+
+  await sendMail(
+    emailLower,
+    'Tractor - Password Reset Code',
+    `Your password reset code is: ${code}\n\nThis code expires in 10 minutes.\n\nIf you didn't request this, you can ignore this email.`
+  );
+
+  return { success: true };
+}
+
+export function resetPassword(email: string, code: string, newPassword: string): { success: boolean; error?: string } {
+  const emailLower = email.trim().toLowerCase();
+  const pending = pendingResetCodes.get(emailLower);
+  if (!pending) return { success: false, error: 'No reset pending' };
+  if (Date.now() > pending.expiresAt) {
+    pendingResetCodes.delete(emailLower);
+    return { success: false, error: 'Code expired' };
+  }
+  if (pending.code !== code.trim()) {
+    return { success: false, error: 'Invalid code' };
+  }
+  if (newPassword.length < 3) {
+    return { success: false, error: 'Password must be at least 3 characters' };
+  }
+
+  const account = accounts.get(pending.username);
+  if (!account) return { success: false, error: 'Account not found' };
+
+  const newSalt = randomBytes(16).toString('hex');
+  account.salt = newSalt;
+  account.passwordHash = hashPassword(newPassword, newSalt);
+  pendingResetCodes.delete(emailLower);
   saveAccounts();
   return { success: true };
 }
