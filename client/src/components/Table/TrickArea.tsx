@@ -68,7 +68,7 @@ const TrickArea: React.FC<TrickAreaProps> = ({ currentTrick, players, myIndex, t
     [leadPlay.cards, trumpInfo, settings]
   );
   const leadDescription = useMemo(() => describePlay(leadComponents), [leadComponents]);
-  const showDescription = leadPlay.cards.length > 1;
+  const showDescription = true;
 
   // Decompose each play into components for grouped rendering
   const decomposeForRender = (cards: Card[]): TrickComponent[] => {

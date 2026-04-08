@@ -71,8 +71,11 @@ const GameTable: React.FC<GameTableProps> = ({
       }
 
       const timer = setTimeout(() => {
-        setCompletedTrick(null);
-        setTrickWinnerIdx(null);
+        // Don't clear the completed trick during scoring — keep it visible
+        if (gameState.phase !== GamePhase.Scoring) {
+          setCompletedTrick(null);
+          setTrickWinnerIdx(null);
+        }
         setScoreAnimation(null);
       }, 2000);
       return () => clearTimeout(timer);
@@ -124,6 +127,8 @@ const GameTable: React.FC<GameTableProps> = ({
   useEffect(() => {
     if (gameState.phase === GamePhase.Drawing) {
       setHasManualOrder(false);
+      setCompletedTrick(null);
+      setTrickWinnerIdx(null);
     }
   }, [gameState.phase]);
 
@@ -510,8 +515,12 @@ const GameTable: React.FC<GameTableProps> = ({
             <div className="trick-winner-overlay">
               <div className="trick-winner-badge">
                 {gameState.players[trickWinnerIdx]?.name} wins!
-                {completedTrick.points > 0 && gameState.players[trickWinnerIdx]?.team === 'attacking' && (
-                  <span className="trick-winner-points">+{completedTrick.points} pts</span>
+                {completedTrick.points > 0 && (
+                  <span className="trick-winner-points">
+                    {gameState.players[trickWinnerIdx]?.team === 'attacking'
+                      ? `+${completedTrick.points} pts`
+                      : `${completedTrick.points} pts defended`}
+                  </span>
                 )}
               </div>
             </div>
@@ -663,7 +672,7 @@ const GameTable: React.FC<GameTableProps> = ({
 
         {/* My hand */}
         <div className="my-hand-area" ref={handAreaRef} style={{ flex: `${handFlex}` }}>
-         <div className="hand-scale-wrapper">
+         <div className="hand-scale-wrapper" style={{ transform: `scale(${0.7 + handFlex})`, transformOrigin: 'top center' }}>
           {phase === GamePhase.FriendDeclaration && isLeader ? (
             <FriendDeclarationUI
               settings={gameState.settings}

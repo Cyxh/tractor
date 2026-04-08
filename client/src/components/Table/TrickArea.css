@@ -14,7 +14,6 @@
   flex-direction: column;
   align-items: center;
   gap: 4px;
-  animation: cardSlideIn 0.2s ease;
 }
 
 @keyframes cardSlideIn {
@@ -31,6 +30,7 @@
 .trick-play-cards {
   display: flex;
   gap: 6px;
+  animation: cardSlideIn 0.2s ease;
 }
 
 .trick-play-cards.trick-cards-vertical {
@@ -45,10 +45,17 @@
 
 .trick-card-wrapper {
   flex-shrink: 0;
+  position: relative;
+  z-index: 0;
 }
 
 .trick-card-wrapper.trick-card-overlap {
   margin-left: clamp(-28px, -2.2vw, -18px);
+  z-index: 1;
+}
+
+.trick-card-wrapper .card {
+  box-shadow: -2px 0 4px rgba(0, 0, 0, 0.3);
 }
 
 /* Positions - pushed toward edges near player names */
@@ -108,7 +115,7 @@
 
 .trick-description-text {
   display: inline-block;
-  background: rgba(0, 0, 0, 0.75);
+  background: rgba(0, 0, 0, 0.45);
   color: var(--gold);
   padding: 5px 14px;
   border-radius: 10px;
