@@ -91,21 +91,20 @@ export function useGame(ws: { send: (msg: any) => void; on: (type: string, handl
     }
   }, []);
 
+  // Track whether we were in a game before disconnect for rejoin
+  const wasInGameRef = useRef(false);
+  const rejoinTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Keep track of game presence
+  useEffect(() => {
+    wasInGameRef.current = !!gameState;
+  }, [gameState]);
+
   // Reset rejoin flag on disconnect so we rejoin on reconnect
   useEffect(() => {
     if (!ws.connected) {
       setAttemptedRejoin(false);
     }
-  }, [ws.connected]);
-
-  // Re-request game state after reconnection if we're in a game
-  useEffect(() => {
-    if (!ws.connected || !roomId) return;
-    // Small delay to let rejoin complete first
-    const timer = setTimeout(() => {
-      ws.send({ type: 'request_state', payload: {} });
-    }, 500);
-    return () => clearTimeout(timer);
   }, [ws.connected]);
 
   // Send authenticate whenever token or connection changes
@@ -119,7 +118,13 @@ export function useGame(ws: { send: (msg: any) => void; on: (type: string, handl
     if (!ws.connected || attemptedRejoin) return;
     setAttemptedRejoin(true);
 
-    // Try account-based rejoin first
+    // If we have a current room, rejoin directly (fastest path for reconnection)
+    if (roomId && playerName) {
+      ws.send({ type: 'rejoin_room', payload: { roomId, playerName } });
+      return;
+    }
+
+    // Otherwise try account-based session
     if (authToken) {
       fetch('/api/me', { headers: { Authorization: `Bearer ${authToken}` } })
         .then(r => r.ok ? r.json() : null)
@@ -137,7 +142,7 @@ export function useGame(ws: { send: (msg: any) => void; on: (type: string, handl
     if (session) {
       ws.send({ type: 'rejoin_room', payload: { roomId: session.roomId, playerName: session.playerName } });
     }
-  }, [ws.connected, attemptedRejoin, ws, authToken]);
+  }, [ws.connected, attemptedRejoin, ws, authToken, roomId, playerName]);
 
   useEffect(() => {
     const unsubs = [
@@ -172,6 +177,16 @@ export function useGame(ws: { send: (msg: any) => void; on: (type: string, handl
         setChatMessages(prev => [...prev, payload]);
       }),
       ws.on('error', (payload: { message: string }) => {
+        // If we get a room-related error while in a game, the room is gone — reset to lobby
+        if (wasInGameRef.current && (payload.message.includes('Room not found') || payload.message.includes('Cannot rejoin'))) {
+          setGameState(null);
+          setRoomId(null);
+          setRoomInfo(null);
+          setPlayerId(null);
+          setChatMessages([]);
+          clearSession();
+          return;
+        }
         setError(payload.message);
         setTimeout(() => setError(null), 3000);
       }),
