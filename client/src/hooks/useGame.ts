@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { PlayerView, Card, GameSettings, FriendDeclaration, ChatMessage } from 'tractor-shared';
 
 interface RoomInfo {
