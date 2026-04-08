@@ -159,6 +159,7 @@ const App: React.FC = () => {
     const shouldAnimate =
       (prev === 'lobby' && target === 'room') ||
       (prev === 'room' && target === 'lobby') ||
+      (prev === 'room' && target === 'game') ||
       (prev === 'connecting' && target === 'lobby');
 
     if (shouldAnimate) {
@@ -201,6 +202,7 @@ const App: React.FC = () => {
 
   if (displayedScreen === 'game' && game.gameState) {
     return (
+      <div className={`screen-transition ${transitionClass}`}>
       <GameTable
         gameState={game.gameState}
         playerId={game.playerId}
@@ -218,6 +220,7 @@ const App: React.FC = () => {
         spectators={game.spectators}
         onSpectateAs={game.spectateAs}
       />
+      </div>
     );
   }
 
