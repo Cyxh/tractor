@@ -376,7 +376,7 @@ const GameTable: React.FC<GameTableProps> = ({
   };
 
   // Resizable hand area via flex ratio
-  const [handFlex, setHandFlex] = useState(0.2);
+  const [handFlex, setHandFlex] = useState(0.3);
   const resizingRef = useRef(false);
   const resizeStartRef = useRef<{ y: number; flex: number }>({ y: 0, flex: 0.3 });
   const handAreaRef = useRef<HTMLDivElement>(null);
