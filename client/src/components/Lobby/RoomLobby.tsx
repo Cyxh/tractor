@@ -145,6 +145,12 @@ const RoomLobby: React.FC<RoomLobbyProps> = ({
           </div>
         </div>
       </div>
+      <div className="site-footer">
+        <span className="site-footer-left">
+          If you liked this, consider buying Revin a boba — <a href="https://account.venmo.com/u/revin-jun" target="_blank" rel="noopener noreferrer">@revin-jun</a> on Venmo
+        </span>
+        <span className="site-footer-right">Patch 1.1.2</span>
+      </div>
     </div>
   );
 };

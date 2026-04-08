@@ -5,8 +5,9 @@
   align-items: center;
   justify-content: center;
   position: relative;
-  overflow: hidden;
+  overflow-x: hidden;
   overflow-y: auto;
+  padding-bottom: 40px;
 }
 
 /* ===== ANIMATED BACKGROUND ===== */
@@ -786,32 +787,3 @@
   }
 }
 
-/* ===== FOOTER ===== */
-.lobby-footer {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  display: flex;
-  justify-content: space-between;
-  padding: 10px 20px;
-  font-size: 12px;
-  color: var(--text-dim);
-  z-index: 20;
-  pointer-events: none;
-}
-
-.lobby-footer a {
-  color: var(--gold-dim);
-  text-decoration: none;
-  pointer-events: auto;
-}
-
-.lobby-footer a:hover {
-  color: var(--gold);
-  text-decoration: underline;
-}
-
-.lobby-footer-right {
-  opacity: 0.5;
-}

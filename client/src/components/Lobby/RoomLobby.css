@@ -1,6 +1,9 @@
 .room-lobby {
   min-height: 100vh;
   position: relative;
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding-bottom: 40px;
 }
 
 .room-lobby-bg {

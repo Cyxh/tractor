@@ -45,7 +45,6 @@
 html, body, #root {
   height: 100%;
   width: 100%;
-  overflow: hidden;
 }
 
 body {
@@ -87,4 +86,34 @@ input, select {
 ::-webkit-scrollbar-thumb {
   background: var(--bg-light);
   border-radius: 3px;
+}
+
+/* ===== SHARED FOOTER ===== */
+.site-footer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 20px;
+  font-size: 12px;
+  color: var(--text-dim);
+  z-index: 20;
+  pointer-events: none;
+}
+
+.site-footer a {
+  color: var(--gold-dim);
+  text-decoration: none;
+  pointer-events: auto;
+}
+
+.site-footer a:hover {
+  color: var(--gold);
+  text-decoration: underline;
+}
+
+.site-footer-left, .site-footer-right {
+  pointer-events: auto;
 }
