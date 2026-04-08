@@ -196,7 +196,7 @@ const App: React.FC = () => {
       <span className="site-footer-left">
         If you liked this, consider buying Revin a boba — <a href="https://account.venmo.com/u/revinjun" target="_blank" rel="noopener noreferrer">@revinjun</a> on Venmo
       </span>
-      <span className="site-footer-right">Beta Version 1.2.4</span>
+      <span className="site-footer-right">Beta Version 1.2.3</span>
     </div>
   ) : null;
 
@@ -234,7 +234,6 @@ const App: React.FC = () => {
         spectators={game.spectators}
         onSpectateAs={game.spectateAs}
         onDevSwitchPlayer={game.devSwitchPlayer}
-        onLeave={game.leaveRoom}
         isConnected={ws.connected}
       />
       </div>
