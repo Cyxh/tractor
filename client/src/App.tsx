@@ -196,7 +196,7 @@ const App: React.FC = () => {
       <span className="site-footer-left">
         If you liked this, consider buying Revin a boba — <a href="https://account.venmo.com/u/revin-jun" target="_blank" rel="noopener noreferrer">@revin-jun</a> on Venmo
       </span>
-      <span className="site-footer-right">Patch 1.1.3</span>
+      <span className="site-footer-right">Patch 1.1.4</span>
     </div>
   ) : null;
 

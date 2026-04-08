@@ -202,12 +202,10 @@
 @keyframes screen-fade-out {
   0% {
     opacity: 1;
-    transform: scale(1);
     filter: blur(0);
   }
   100% {
     opacity: 0;
-    transform: scale(0.97);
     filter: blur(4px);
   }
 }
@@ -215,12 +213,10 @@
 @keyframes screen-fade-in {
   0% {
     opacity: 0;
-    transform: scale(1.03);
     filter: blur(4px);
   }
   100% {
     opacity: 1;
-    transform: scale(1);
     filter: blur(0);
   }
 }
