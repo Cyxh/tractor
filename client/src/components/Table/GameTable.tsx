@@ -561,7 +561,7 @@ const GameTable: React.FC<GameTableProps> = ({
 
       {/* Main table area */}
       <div className="table-area">
-        <div className="felt-table" style={{ flex: `${1 - handFlex}` }}>
+        <div className="felt-table" style={{ flex: 1 }}>
           <div className="felt-center-glow" />
 
           {/* My player info (bottom center, above hand) */}
@@ -771,7 +771,7 @@ const GameTable: React.FC<GameTableProps> = ({
         </div>
 
         {/* My hand */}
-        <div className="my-hand-area" ref={handAreaRef} style={{ flex: `${handFlex}` }}>
+        <div className="my-hand-area" ref={handAreaRef}>
          <div className="hand-scale-wrapper" style={{ zoom: 0.7 + handFlex }}>
           {phase === GamePhase.FriendDeclaration && isLeader ? (
             <FriendDeclarationUI
