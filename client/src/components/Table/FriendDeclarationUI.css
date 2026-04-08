@@ -1,0 +1,48 @@
+.friend-declaration {
+  padding: 8px 0;
+}
+
+.friend-declaration h3 {
+  font-size: 14px;
+  color: var(--gold);
+  margin-bottom: 12px;
+  text-align: center;
+}
+
+.friend-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.friend-row-input {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: center;
+}
+
+.friend-ordinal {
+  font-size: 13px;
+  color: var(--text);
+  min-width: 60px;
+}
+
+.friend-select {
+  background: var(--bg-card);
+  color: var(--text);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 13px;
+}
+
+.friend-select:focus {
+  border-color: var(--accent);
+}
+
+.friend-declaration .btn {
+  display: block;
+  margin: 0 auto;
+}

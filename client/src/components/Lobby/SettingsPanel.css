@@ -1,0 +1,76 @@
+.settings-panel h3 {
+  font-size: 16px;
+  color: var(--text);
+  margin-bottom: 16px;
+}
+
+.settings-group {
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.settings-group:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+}
+
+.settings-group-title {
+  font-size: 11px;
+  color: var(--gold-dim);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+
+.setting-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 5px 0;
+}
+
+.setting-row label {
+  font-size: 13px;
+  color: var(--text);
+  flex-shrink: 0;
+  margin-right: 10px;
+}
+
+.setting-row select,
+.setting-row input[type="number"] {
+  background: var(--bg-dark);
+  color: var(--text);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  padding: 5px 8px;
+  font-size: 12px;
+  min-width: 140px;
+}
+
+.setting-row select:focus,
+.setting-row input[type="number"]:focus {
+  border-color: var(--accent);
+}
+
+.setting-row select:disabled,
+.setting-row input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.setting-row.checkbox {
+  cursor: pointer;
+}
+
+.setting-row.checkbox input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--accent);
+}
+
+.setting-row input[type="number"] {
+  width: 70px;
+  min-width: 70px;
+}

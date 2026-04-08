@@ -1,0 +1,392 @@
+.card {
+  width: var(--card-w);
+  height: var(--card-h);
+  border-radius: 8px;
+  background: var(--card-bg);
+  box-shadow: 0 2px 8px var(--card-shadow);
+  position: relative;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  user-select: none;
+  flex-shrink: 0;
+}
+
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 6px 16px var(--card-shadow);
+}
+
+.card-selected {
+  transform: translateY(-16px) !important;
+  box-shadow: 0 8px 20px rgba(233, 69, 96, 0.4) !important;
+  outline: 2px solid var(--accent);
+}
+
+.card-small {
+  width: var(--card-w-sm);
+  height: var(--card-h-sm);
+  border-radius: 5px;
+}
+
+.card-small .card-rank {
+  font-size: var(--font-xs);
+}
+
+.card-small .card-suit-small {
+  font-size: clamp(8px, 0.7vw, 12px);
+}
+
+.card-small .card-suit-large {
+  font-size: clamp(18px, 1.8vw, 28px);
+}
+
+.card-small .card-pip {
+  font-size: clamp(10px, 1vw, 15px);
+}
+
+.card-small .card-ace-pip {
+  font-size: clamp(22px, 2.2vw, 34px);
+}
+
+.card-small .face-symbol {
+  font-size: clamp(16px, 1.6vw, 24px);
+}
+
+.card-small .face-label {
+  font-size: clamp(4px, 0.4vw, 7px);
+}
+
+.card-small .face-suit {
+  font-size: clamp(8px, 0.8vw, 12px);
+}
+
+.card-small .card-corner {
+  padding: 2px 3px;
+}
+
+.card-red {
+  color: var(--red-suit);
+}
+
+.card-black {
+  color: #1a1a2e;
+}
+
+.card-corner {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1;
+  padding: 4px 6px;
+  z-index: 2;
+}
+
+.card-corner-top {
+  top: 0;
+  left: 0;
+}
+
+.card-corner-bottom {
+  bottom: 0;
+  right: 0;
+  transform: rotate(180deg);
+}
+
+.card-rank {
+  font-size: var(--font-sm);
+  font-weight: 700;
+}
+
+.card-suit-small {
+  font-size: var(--font-xs);
+  margin-top: -1px;
+}
+
+.card-center {
+  position: absolute;
+  top: 18%;
+  left: 10%;
+  right: 10%;
+  bottom: 18%;
+  z-index: 2;
+}
+
+.card-center-joker {
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+.card-suit-large {
+  font-size: clamp(22px, 2.2vw, 36px);
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+/* Pip layout for number cards - bigger pips like bicycle cards */
+.card-pips {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.card-pip {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  font-size: clamp(13px, 1.3vw, 20px);
+  line-height: 1;
+}
+
+.pip-inverted {
+  transform: translate(-50%, -50%) rotate(180deg);
+}
+
+/* Ace: one big pip */
+.card-ace-pip {
+  font-size: clamp(32px, 3.2vw, 50px);
+  line-height: 1;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+/* Face cards */
+.card-face {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  gap: 1px;
+}
+
+.face-symbol {
+  font-size: clamp(20px, 2vw, 32px);
+  line-height: 1;
+  opacity: 0.85;
+}
+
+.face-label {
+  font-size: clamp(5px, 0.45vw, 8px);
+  font-weight: 700;
+  letter-spacing: 1px;
+  opacity: 0.6;
+}
+
+.face-suit {
+  font-size: clamp(10px, 1vw, 16px);
+  line-height: 1;
+}
+
+/* Joker - special full-card design, no corner indicators */
+.card-joker-type {
+  overflow: hidden;
+}
+
+/* Big Joker — dark with red accent card background */
+.card-joker-type:has(.big-joker-full) {
+  background:
+    radial-gradient(ellipse at 50% 30%, rgba(255, 60, 60, 0.15) 0%, transparent 60%),
+    linear-gradient(170deg, #2a2a2a 0%, #3a3a3a 30%, #454545 50%, #3a3a3a 70%, #2a2a2a 100%);
+}
+
+/* Little Joker — dark with white/silver card background */
+.card-joker-type:has(.little-joker-full) {
+  background:
+    radial-gradient(ellipse at 50% 30%, rgba(255, 255, 255, 0.15) 0%, transparent 60%),
+    linear-gradient(170deg, #2a2a2a 0%, #3a3a3a 30%, #454545 50%, #3a3a3a 70%, #2a2a2a 100%);
+}
+
+.card-joker-full {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  gap: 2px;
+  position: relative;
+  overflow: hidden;
+}
+
+.big-joker-full {
+  color: #e53e3e;
+}
+
+.little-joker-full {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.joker-symbol {
+  font-size: clamp(40px, 4.5vw, 68px);
+  line-height: 1;
+  filter: drop-shadow(0 0 8px currentColor);
+  animation: jokerGlow 3s ease-in-out infinite;
+}
+
+.big-joker-full .joker-symbol {
+  color: #e53e3e;
+  filter: drop-shadow(0 0 10px rgba(229, 62, 62, 0.4));
+}
+
+.little-joker-full .joker-symbol {
+  color: rgba(255, 255, 255, 0.95);
+  filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.4));
+}
+
+@keyframes jokerGlow {
+  0%, 100% { filter: drop-shadow(0 0 6px currentColor); }
+  50% { filter: drop-shadow(0 0 14px currentColor); }
+}
+
+/* Animated shimmer sweep */
+.joker-shimmer {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    105deg,
+    transparent 0%,
+    transparent 35%,
+    rgba(255, 255, 255, 0.12) 45%,
+    rgba(255, 255, 255, 0.2) 50%,
+    rgba(255, 255, 255, 0.12) 55%,
+    transparent 65%,
+    transparent 100%
+  );
+  background-size: 300% 100%;
+  pointer-events: none;
+  animation: jokerShimmer 4s ease-in-out infinite;
+}
+
+@keyframes jokerShimmer {
+  0%, 100% { background-position: 130% 0; }
+  50% { background-position: -30% 0; }
+}
+
+/* Small card joker adjustments */
+.card-small .joker-symbol {
+  font-size: clamp(24px, 2.5vw, 40px);
+}
+
+/* Trump card — metallic gold */
+.card-trump-aura {
+  background:
+    linear-gradient(
+      180deg,
+      #f0dfa0,
+      #e8d080 30%,
+      #dcc460 50%,
+      #e8d080 70%,
+      #f0dfa0
+    );
+}
+
+.card-trump-aura::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(
+    105deg,
+    rgba(255, 245, 200, 0) 0%,
+    rgba(255, 245, 200, 0) 30%,
+    rgba(255, 245, 200, 0.5) 45%,
+    rgba(255, 250, 220, 0.65) 50%,
+    rgba(255, 245, 200, 0.5) 55%,
+    rgba(255, 245, 200, 0) 70%,
+    rgba(255, 245, 200, 0) 100%
+  );
+  background-size: 300% 100%;
+  pointer-events: none;
+  z-index: 0;
+  animation: trumpSheen 12s ease-in-out infinite;
+}
+
+@keyframes trumpSheen {
+  0%, 100% { background-position: 120% 0; }
+  50% { background-position: -20% 0; }
+}
+
+/* Point card - red notch in bottom-left corner */
+.card-point-aura {
+  position: relative;
+}
+
+.card-point-aura::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 16px;
+  height: 16px;
+  background: var(--red-suit);
+  clip-path: polygon(0 0, 0 100%, 100% 100%);
+  border-radius: 0 0 0 7px;
+  z-index: 6;
+  opacity: 0.85;
+}
+
+.card-small.card-point-aura::after {
+  width: 12px;
+  height: 12px;
+  border-radius: 0 0 0 4px;
+}
+
+/* Deal animation: card slides in from top and fades */
+.card-deal-in {
+  animation: dealIn 0.3s ease-out;
+}
+
+@keyframes dealIn {
+  from {
+    opacity: 0;
+    transform: translateY(-40px) scale(0.7);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Play animation: card flies to center */
+.card-play-out {
+  animation: playOut 0.25s ease-in forwards;
+}
+
+@keyframes playOut {
+  to {
+    opacity: 0;
+    transform: translateY(-60px) scale(0.6);
+  }
+}
+
+/* Card back */
+.card-back {
+  background: linear-gradient(135deg, #2a4a7f 0%, #1a3a6f 50%, #2a4a7f 100%);
+  border: 2px solid #3a5a8f;
+  cursor: default;
+}
+
+.card-back:hover {
+  transform: none;
+}
+
+.card-back-pattern {
+  width: 100%;
+  height: 100%;
+  border-radius: 6px;
+  background:
+    repeating-linear-gradient(
+      45deg,
+      transparent,
+      transparent 4px,
+      rgba(255, 255, 255, 0.03) 4px,
+      rgba(255, 255, 255, 0.03) 8px
+    );
+  border: 3px solid rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+}

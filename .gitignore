@@ -1,0 +1,11 @@
+node_modules/
+dist/
+*.js.map
+.env
+data/
+.claude/
+patch*.txt
+base.txt
+TODO.txt
+*.png
+start.sh

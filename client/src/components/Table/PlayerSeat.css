@@ -1,0 +1,152 @@
+.player-seat {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  z-index: 5;
+  transition: all 0.3s ease;
+  background: rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(4px);
+  padding: 6px 14px;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* Positioning */
+.seat-top {
+  top: 8%;
+  left: 50%;
+  transform: translateX(-50%);
+  flex-direction: column;
+}
+
+.seat-right {
+  right: 5%;
+  top: 50%;
+  transform: translateY(-50%);
+  flex-direction: row-reverse;
+}
+
+.seat-left {
+  left: 5%;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.seat-bottom-right {
+  right: 12%;
+  bottom: 15%;
+}
+
+.seat-bottom-left {
+  left: 12%;
+  bottom: 15%;
+}
+
+.seat-top-right {
+  right: 12%;
+  top: 15%;
+  flex-direction: row-reverse;
+}
+
+.seat-top-left {
+  left: 12%;
+  top: 15%;
+}
+
+/* Avatar */
+.seat-avatar {
+  position: relative;
+}
+
+.avatar-circle {
+  width: clamp(36px, 3.5vw, 56px);
+  height: clamp(36px, 3.5vw, 56px);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-lg);
+  font-weight: 700;
+  color: white;
+  background: var(--bg-light);
+  border: 2px solid rgba(255, 255, 255, 0.15);
+  transition: border-color 0.3s ease;
+}
+
+.team-defending {
+  background: linear-gradient(135deg, #2d6a4f, #1b4332);
+  border-color: var(--success);
+}
+
+.team-attacking {
+  background: linear-gradient(135deg, #6a2d2d, #4a1e1e);
+  border-color: var(--accent);
+}
+
+.leader-badge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--gold);
+  color: var(--bg-dark);
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+}
+
+/* Turn badge below seat box */
+.seat-turn-badge {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  top: calc(100% + 6px);
+  padding: 3px 12px;
+  border-radius: 10px;
+  background: rgba(240, 192, 64, 0.2);
+  border: 1px solid rgba(240, 192, 64, 0.4);
+  color: var(--gold);
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+  animation: seat-turn-pulse 1.5s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes seat-turn-pulse {
+  0%, 100% { box-shadow: 0 0 6px rgba(240, 192, 64, 0.2); }
+  50% { box-shadow: 0 0 12px rgba(240, 192, 64, 0.4); }
+}
+
+.active-turn .avatar-circle {
+  border-color: var(--gold);
+  box-shadow: 0 0 12px rgba(240, 192, 64, 0.3);
+}
+
+/* Info */
+.seat-info {
+  text-align: center;
+}
+
+.seat-name {
+  font-size: var(--font-sm);
+  font-weight: 600;
+  color: var(--text-bright);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+}
+
+.seat-meta {
+  display: flex;
+  gap: 6px;
+  font-size: var(--font-xs);
+  color: var(--text-dim);
+}
+
+.seat-level {
+  color: var(--gold-dim);
+}

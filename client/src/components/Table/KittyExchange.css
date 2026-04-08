@@ -1,0 +1,47 @@
+.kitty-exchange {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.kitty-exchange-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.kitty-exchange-header h3 {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--gold);
+}
+
+.kitty-count {
+  font-size: 13px;
+  color: var(--text-dim);
+  background: var(--bg-card);
+  padding: 4px 10px;
+  border-radius: 12px;
+}
+
+.kitty-exchange-cards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  justify-content: center;
+}
+
+.kitty-exchange-cards .card {
+  margin-left: -12px;
+}
+
+.kitty-exchange-cards .card:first-child {
+  margin-left: 0;
+}
+
+.kitty-exchange-actions {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  padding: 4px 0;
+}

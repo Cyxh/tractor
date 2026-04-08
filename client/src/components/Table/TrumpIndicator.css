@@ -1,0 +1,40 @@
+.trump-indicator {
+  background: var(--bg-card);
+  border-radius: 10px;
+  padding: 14px;
+  text-align: center;
+}
+
+.trump-label {
+  font-size: 11px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 6px;
+}
+
+.trump-display {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.trump-rank {
+  font-size: var(--font-xl);
+  font-weight: 700;
+  color: var(--gold);
+}
+
+.trump-suit {
+  font-size: var(--font-xl);
+}
+
+.trump-notrump {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-dim);
+  padding: 4px 8px;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 4px;
+}

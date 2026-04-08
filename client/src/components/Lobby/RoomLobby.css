@@ -1,0 +1,242 @@
+.room-lobby {
+  min-height: 100vh;
+  position: relative;
+}
+
+.room-lobby-bg {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 30% 30%, rgba(15, 52, 96, 0.3) 0%, transparent 50%),
+    var(--bg-dark);
+}
+
+.room-lobby-content {
+  position: relative;
+  z-index: 1;
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.room-lobby-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+
+.btn-text {
+  background: none;
+  color: var(--text-dim);
+  font-size: 14px;
+  padding: 8px 12px;
+}
+
+.btn-text:hover {
+  color: var(--text);
+}
+
+.room-code-display {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.room-code-label {
+  font-size: 10px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.room-code-value {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--gold);
+  font-family: monospace;
+  letter-spacing: 4px;
+}
+
+.room-lobby-body {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+/* Players panel */
+.room-players-panel {
+  background: var(--bg-medium);
+  border-radius: 16px;
+  padding: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.room-players-panel h3 {
+  font-size: 16px;
+  color: var(--text);
+  margin-bottom: 16px;
+}
+
+.room-player-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.room-player-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: var(--bg-card);
+  border-radius: 10px;
+}
+
+.room-player-item.empty {
+  opacity: 0.4;
+}
+
+.room-player-item.disconnected {
+  opacity: 0.5;
+}
+
+.disconnected-tag {
+  font-size: 11px;
+  color: var(--text-dim);
+  font-style: italic;
+}
+
+.player-avatar-small {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--bg-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-bright);
+}
+
+.empty-avatar {
+  background: var(--bg-dark);
+  color: var(--text-dim);
+}
+
+.player-name-text {
+  font-size: 14px;
+  color: var(--text);
+  flex: 1;
+}
+
+.player-name-text.dim {
+  color: var(--text-dim);
+}
+
+.host-tag {
+  font-size: 10px;
+  color: var(--gold);
+  background: rgba(240, 192, 64, 0.15);
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.btn-swap {
+  padding: 4px 8px;
+  font-size: 14px;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text-dim);
+  border-radius: 6px;
+  line-height: 1;
+}
+
+.btn-swap:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: var(--text);
+}
+
+.start-btn {
+  width: 100%;
+  padding: 14px;
+  font-size: 16px;
+}
+
+.waiting-msg {
+  text-align: center;
+  color: var(--text-dim);
+  font-size: 14px;
+  padding: 12px;
+}
+
+/* Right panel: settings + chat */
+.room-right-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.room-settings-panel {
+  background: var(--bg-medium);
+  border-radius: 16px;
+  padding: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  max-height: 50vh;
+  overflow-y: auto;
+}
+
+.room-chat-panel {
+  background: var(--bg-medium);
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  min-height: 200px;
+  max-height: 30vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Start button spinner */
+.btn-spinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top: 2px solid white;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  vertical-align: middle;
+  margin-right: 6px;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Spectator list */
+.spectator-list {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.spectator-title {
+  font-size: 12px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 6px;
+}
+
+.spectator-item {
+  padding: 4px 0;
+  font-size: 13px;
+  color: var(--text-dim);
+}
+
+.spectator-name {
+  color: var(--text);
+}

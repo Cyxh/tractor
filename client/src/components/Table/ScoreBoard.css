@@ -1,0 +1,150 @@
+.scoreboard {
+  background: var(--bg-card);
+  border-radius: 10px;
+  padding: clamp(10px, 1vw, 14px);
+  overflow: hidden;
+}
+
+.score-title {
+  font-size: var(--font-xs);
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: clamp(6px, 0.8vw, 10px);
+}
+
+.score-teams {
+  display: flex;
+  align-items: center;
+  gap: clamp(4px, 0.6vw, 8px);
+  margin-bottom: clamp(8px, 1vw, 14px);
+}
+
+.score-team {
+  flex: 1;
+  text-align: center;
+  min-width: 0;
+}
+
+.team-label {
+  font-size: clamp(8px, 0.7vw, 10px);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.team-atk { color: var(--accent); }
+.team-def { color: var(--success); }
+
+.team-points {
+  font-size: clamp(18px, 1.8vw, 32px);
+  font-weight: 700;
+  color: var(--text-bright);
+  line-height: 1.2;
+  position: relative;
+}
+
+.team-points.score-pop {
+  animation: scorePop 0.5s ease;
+}
+
+@keyframes scorePop {
+  0% { transform: scale(1); }
+  30% { transform: scale(1.3); }
+  100% { transform: scale(1); }
+}
+
+.score-delta {
+  position: absolute;
+  top: -4px;
+  right: -8px;
+  font-size: clamp(10px, 0.9vw, 14px);
+  font-weight: 700;
+  animation: scoreDeltaFloat 2s ease forwards;
+  pointer-events: none;
+}
+
+.score-delta-atk { color: var(--accent); }
+.score-delta-def { color: var(--success); }
+
+@keyframes scoreDeltaFloat {
+  0% { opacity: 1; transform: translateY(0); }
+  70% { opacity: 1; transform: translateY(-12px); }
+  100% { opacity: 0; transform: translateY(-18px); }
+}
+
+.score-divider {
+  font-size: clamp(9px, 0.8vw, 11px);
+  color: var(--text-dim);
+  flex-shrink: 0;
+}
+
+.player-levels {
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  padding-top: clamp(6px, 0.8vw, 10px);
+}
+
+.levels-title {
+  font-size: clamp(8px, 0.7vw, 10px);
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 4px;
+}
+
+.level-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 2px 0;
+  font-size: clamp(10px, 0.85vw, 12px);
+  gap: 4px;
+}
+
+.level-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.level-name.defending {
+  color: var(--success);
+}
+
+.level-name.attacking {
+  color: var(--accent);
+}
+
+.level-rank {
+  color: var(--gold);
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.friend-declarations {
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  padding-top: 8px;
+  margin-top: 8px;
+}
+
+.friend-row {
+  display: flex;
+  gap: 4px;
+  font-size: clamp(9px, 0.75vw, 11px);
+  color: var(--text-dim);
+  padding: 2px 0;
+}
+
+.friend-row.found {
+  color: var(--success);
+}
+
+.round-info {
+  margin-top: 8px;
+  text-align: center;
+  font-size: clamp(9px, 0.75vw, 11px);
+  color: var(--text-dim);
+}

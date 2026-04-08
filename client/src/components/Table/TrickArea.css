@@ -1,0 +1,131 @@
+.trick-area {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: clamp(300px, 50vw, 700px);
+  height: clamp(200px, 40vh, 500px);
+  pointer-events: none;
+}
+
+.trick-play {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  animation: cardSlideIn 0.2s ease;
+}
+
+@keyframes cardSlideIn {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.trick-play-cards {
+  display: flex;
+  gap: 6px;
+}
+
+.trick-play-cards.trick-cards-vertical {
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* Component group: cards within a component overlap */
+.trick-component-group {
+  display: flex;
+}
+
+.trick-card-wrapper {
+  flex-shrink: 0;
+}
+
+.trick-card-wrapper.trick-card-overlap {
+  margin-left: clamp(-28px, -2.2vw, -18px);
+}
+
+/* Positions - pushed toward edges near player names */
+.trick-bottom {
+  bottom: 5%;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.trick-top {
+  top: 5%;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.trick-right {
+  right: 5%;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.trick-left {
+  left: 5%;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.trick-bottom-right {
+  bottom: 8%;
+  right: 8%;
+}
+
+.trick-bottom-left {
+  bottom: 8%;
+  left: 8%;
+}
+
+.trick-top-right {
+  top: 8%;
+  right: 8%;
+}
+
+.trick-top-left {
+  top: 8%;
+  left: 8%;
+}
+
+/* Lead play description text box */
+.trick-description {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 5;
+  pointer-events: none;
+}
+
+.trick-description-text {
+  display: inline-block;
+  background: rgba(0, 0, 0, 0.75);
+  color: var(--gold);
+  padding: 5px 14px;
+  border-radius: 10px;
+  font-size: clamp(10px, 1vw, 14px);
+  font-weight: 600;
+  white-space: nowrap;
+  border: 1px solid rgba(240, 192, 64, 0.25);
+  backdrop-filter: blur(6px);
+  animation: descFadeIn 0.3s ease;
+}
+
+@keyframes descFadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Vertical stacking for very large plays */
+.trick-play-vertical .trick-cards-vertical .trick-component-group {
+  justify-content: center;
+}
