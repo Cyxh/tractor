@@ -638,15 +638,11 @@ wss.on('connection', (ws: WebSocket) => {
       const room = roomManager.getRoom(currentRoomId);
       if (room) {
         room.removePlayer(playerId);
-        if (room.players.length === 0 || room.allDisconnected()) {
-          roomManager.removeRoom(currentRoomId);
-          const acct = playerAccounts.get(playerId);
-          if (acct) setAccountRoom(acct, null, null);
-        } else {
-          sendRoomUpdate(currentRoomId);
-          if (room.game) {
-            room.broadcastState();
-          }
+        // Don't immediately remove room — let periodic cleanup handle it
+        // so disconnected players have time to rejoin
+        sendRoomUpdate(currentRoomId);
+        if (room.game) {
+          room.broadcastState();
         }
       }
       playerRooms.delete(playerId);
@@ -667,11 +663,16 @@ function broadcastRoomList() {
 
 import { GamePhase } from 'tractor-shared';
 
-// Periodic cleanup: remove rooms where all players are disconnected
+// Periodic cleanup: remove rooms where all players have been disconnected for 2+ minutes
+const ROOM_CLEANUP_GRACE_MS = 2 * 60 * 1000;
 setInterval(() => {
   let changed = false;
+  const now = Date.now();
   for (const room of roomManager.getAllRooms()) {
-    if (room.players.length === 0 || room.allDisconnected()) {
+    if (room.players.length === 0) {
+      roomManager.removeRoom(room.id);
+      changed = true;
+    } else if (room.allDisconnected() && room.allDisconnectedAt && now - room.allDisconnectedAt >= ROOM_CLEANUP_GRACE_MS) {
       roomManager.removeRoom(room.id);
       changed = true;
     }

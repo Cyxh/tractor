@@ -24,6 +24,7 @@ export class Room {
   devMode: boolean = false;
   devPlayingAs: string | null = null;  // player ID the dev is currently controlling
   devRealPlayerId: string | null = null;  // the actual player ID of the dev account
+  allDisconnectedAt: number | null = null;  // timestamp when all players disconnected
 
   constructor(id: string) {
     this.id = id;
@@ -83,6 +84,10 @@ export class Room {
           this.hostId = connectedPlayer.id;
         }
       }
+      // Track when all players became disconnected (for cleanup grace period)
+      if (this.allDisconnected()) {
+        this.allDisconnectedAt = Date.now();
+      }
     }
   }
 
@@ -117,6 +122,7 @@ export class Room {
 
     player.ws = ws;
     player.connected = true;
+    this.allDisconnectedAt = null;
     // Update id if rejoining by name
     if (player.id !== id) {
       // Update game state references
