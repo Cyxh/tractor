@@ -106,8 +106,38 @@ async function sendMail(to: string, subject: string, text: string): Promise<bool
   }
 }
 
-// In-memory token store (tokens don't survive restart, but accounts do — users just re-login)
+const TOKENS_FILE = join(DATA_DIR, 'tokens.json');
 const tokens = new Map<string, TokenEntry>();
+
+function loadTokens(): void {
+  try {
+    if (existsSync(TOKENS_FILE)) {
+      const data = JSON.parse(readFileSync(TOKENS_FILE, 'utf-8')) as Record<string, TokenEntry>;
+      const now = Date.now();
+      for (const [token, entry] of Object.entries(data)) {
+        // Skip expired tokens
+        if (now - entry.createdAt <= 24 * 60 * 60 * 1000) {
+          tokens.set(token, entry);
+        }
+      }
+    }
+  } catch (e) {
+    console.error('Failed to load tokens:', e);
+  }
+}
+
+function saveTokens(): void {
+  try {
+    if (!existsSync(DATA_DIR)) {
+      mkdirSync(DATA_DIR, { recursive: true });
+    }
+    const obj: Record<string, TokenEntry> = {};
+    tokens.forEach((v, k) => { obj[k] = v; });
+    writeFileSync(TOKENS_FILE, JSON.stringify(obj));
+  } catch (e) {
+    console.error('Failed to save tokens:', e);
+  }
+}
 
 let accounts: Map<string, Account> = new Map();
 
@@ -142,6 +172,7 @@ function saveAccounts(): void {
 
 // Initialize
 loadAccounts();
+loadTokens();
 
 export function register(username: string, password: string): { success: boolean; error?: string; token?: string } {
   const normalized = username.trim().toLowerCase();
@@ -194,6 +225,7 @@ export function login(username: string, password: string): { success: boolean; e
 function generateToken(username: string): string {
   const token = randomBytes(32).toString('hex');
   tokens.set(token, { username, createdAt: Date.now() });
+  saveTokens();
   return token;
 }
 
@@ -203,6 +235,7 @@ export function validateToken(token: string): string | null {
   // Tokens expire after 24 hours
   if (Date.now() - entry.createdAt > 24 * 60 * 60 * 1000) {
     tokens.delete(token);
+    saveTokens();
     return null;
   }
   return entry.username;
