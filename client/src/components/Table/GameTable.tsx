@@ -180,19 +180,17 @@ const GameTable: React.FC<GameTableProps> = ({
     prevHandRef.current = currentIds;
     prevHandCardsRef.current = new Map(gameState.hand.map(c => [cardId(c), c]));
 
-    const timers: ReturnType<typeof setTimeout>[] = [];
     if (removed.length > 0) {
       setExitingCards(removed);
       pendingFlip.current = true;
-      timers.push(setTimeout(() => setExitingCards([]), 250));
+      const timer = setTimeout(() => setExitingCards([]), 250);
+      return () => clearTimeout(timer);
     }
     if (newIds.size > 0 && gameState.phase !== GamePhase.Scoring && gameState.phase !== GamePhase.GameOver) {
       setNewCardIds(newIds);
       pendingFlip.current = true;
-      timers.push(setTimeout(() => setNewCardIds(new Set()), 350));
-    }
-    if (timers.length > 0) {
-      return () => timers.forEach(t => clearTimeout(t));
+      const timer = setTimeout(() => setNewCardIds(new Set()), 350);
+      return () => clearTimeout(timer);
     }
   }, [gameState.hand]);
 
@@ -794,13 +792,8 @@ const GameTable: React.FC<GameTableProps> = ({
                   <div className="trump-category-cards">
                     {trumpCategoryCards.map((card, idx) => {
                       const cid = cardId(card);
-                      const globalIdx = displayCards.findIndex(c => cardId(c) === cid);
                       return (
-                        <div
-                          key={cid}
-                          ref={el => { if (globalIdx >= 0) cardWrappersRef.current[globalIdx] = el; }}
-                          className={`hand-card-wrapper ${newCardIds.has(cid) ? 'card-deal-in' : ''}`}
-                        >
+                        <div key={cid} className="hand-card-wrapper">
                           <CardComponent
                             card={card}
                             selected={selectedCards.some(c => cardId(c) === cid)}
