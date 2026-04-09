@@ -120,6 +120,14 @@ export class Room {
     const player = this.players.find(p => p.id === id || p.name === name);
     if (!player) return false;
 
+    // Close old WebSocket to prevent multi-tab reconnection loops
+    if (player.ws && player.ws !== ws) {
+      try {
+        player.ws.send(JSON.stringify({ type: 'session_replaced', payload: {} }));
+        player.ws.close();
+      } catch (_) { /* old ws may already be dead */ }
+    }
+
     player.ws = ws;
     player.connected = true;
     this.allDisconnectedAt = null;

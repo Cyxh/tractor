@@ -295,3 +295,4 @@ _Record all edits below so future sessions know what changed._
 | 2026-04-08 | Error toast close button + dismissible state | GameTable.tsx, GameTable.css |
 | 2026-04-08 | Stronger disconnected player styling (red border + tinted bg) in room lobby | RoomLobby.css |
 | 2026-04-08 | Click-to-copy room code with "Copied!" feedback | RoomLobby.tsx, RoomLobby.css |
+| 2026-04-08 | Disconnected players stay in room (marked disconnected, can rejoin); explicit leave still removes; 2-min grace period before cleanup; dev mode ids update on rejoin; join_room auto-rejoins by name | room.ts, index.ts, useGame.ts |

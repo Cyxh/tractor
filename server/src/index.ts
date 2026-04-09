@@ -665,16 +665,25 @@ wss.on('connection', (ws: WebSocket) => {
     if (currentRoomId) {
       const room = roomManager.getRoom(currentRoomId);
       if (room) {
-        room.removePlayer(playerId);
-        console.log(`[WS] Room ${currentRoomId}: allDisconnected=${room.allDisconnected()}, players=${room.players.map(p => `${p.name}(${p.connected})`).join(',')}`);
+        // Only remove if this WS is still the player's active connection
+        // (prevents old replaced WS from kicking the rejoined player)
+        const player = room.players.find(p => p.id === playerId);
+        if (player && player.ws === ws) {
+          room.removePlayer(playerId);
+          console.log(`[WS] Room ${currentRoomId}: allDisconnected=${room.allDisconnected()}, players=${room.players.map(p => `${p.name}(${p.connected})`).join(',')}`);
+          playerRooms.delete(playerId);
+        } else {
+          console.log(`[WS] Ignoring stale WS close for player ${playerId} (replaced by new connection)`);
+        }
         // Don't immediately remove room — let periodic cleanup handle it
         // so disconnected players have time to rejoin
         sendRoomUpdate(currentRoomId);
         if (room.game) {
           room.broadcastState();
         }
+      } else {
+        playerRooms.delete(playerId);
       }
-      playerRooms.delete(playerId);
       broadcastRoomList();
     }
     playerAccounts.delete(playerId);

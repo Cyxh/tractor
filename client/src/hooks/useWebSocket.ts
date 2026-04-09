@@ -55,6 +55,16 @@ export function useWebSocket() {
 
       ws.onmessage = (event) => {
         const msg = JSON.parse(event.data);
+
+        // Another tab/window took over this session — stop reconnecting
+        if (msg.type === 'session_replaced') {
+          console.log('[WS] Session replaced by another tab');
+          destroyed = true;
+          if (reconnectTimer) clearTimeout(reconnectTimer);
+          ws.close();
+          return;
+        }
+
         setLastMessage(msg);
 
         const listeners = listenersRef.current.get(msg.type);
