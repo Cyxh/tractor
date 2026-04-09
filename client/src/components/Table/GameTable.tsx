@@ -792,8 +792,13 @@ const GameTable: React.FC<GameTableProps> = ({
                   <div className="trump-category-cards">
                     {trumpCategoryCards.map((card, idx) => {
                       const cid = cardId(card);
+                      const globalIdx = displayCards.findIndex(c => cardId(c) === cid);
                       return (
-                        <div key={cid} className="hand-card-wrapper">
+                        <div
+                          key={cid}
+                          ref={el => { cardWrappersRef.current[globalIdx] = el; }}
+                          className={`hand-card-wrapper ${newCardIds.has(cid) ? 'card-deal-in' : ''}`}
+                        >
                           <CardComponent
                             card={card}
                             selected={selectedCards.some(c => cardId(c) === cid)}
