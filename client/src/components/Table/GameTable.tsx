@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useRef, useEffect, useLayoutEffect, useCallback } from 'react';
-import { PlayerView, Card, GamePhase, cardId, cardEquals, ChatMessage, Trick } from 'tractor-shared';
+import { PlayerView, Card, GamePhase, cardId, cardEquals, ChatMessage, Trick, determineTrickWinner } from 'tractor-shared';
 import { RANK_NAMES, SUIT_SYMBOLS, SUIT_NAMES } from 'tractor-shared';
 import { cardOrder as getCardOrder } from 'tractor-shared';
 import CardComponent from './Card';
@@ -427,6 +427,14 @@ const GameTable: React.FC<GameTableProps> = ({
   const myPlayer = gameState.players[gameState.myIndex];
   const myId = myPlayer?.id;
 
+  // Determine who is currently winning the in-progress trick
+  const activeTrick = completedTrick || gameState.currentTrick;
+  const currentTrickWinnerPlayerIdx = useMemo(() => {
+    if (!activeTrick || activeTrick.plays.length === 0) return null;
+    const winnerPlayIdx = determineTrickWinner(activeTrick, gameState.trumpInfo, gameState.settings);
+    return activeTrick.plays[winnerPlayIdx]?.playerIdx ?? null;
+  }, [activeTrick, gameState.trumpInfo, gameState.settings]);
+
   // Determine which cards to display
   const displayCards = cardOrder.length > 0 ? cardOrder : gameState.hand;
 
@@ -570,7 +578,7 @@ const GameTable: React.FC<GameTableProps> = ({
               <div className="my-meta">
                 <span className="my-level">Lv {RANK_NAMES[myPlayer?.rank]}</span>
                 <span className="my-cards">{gameState.hand.length} cards</span>
-                {isLeader && <span className="my-leader-badge">&#9733; Leader</span>}
+                {currentTrickWinnerPlayerIdx === gameState.myIndex && <span className="my-leader-badge">&#9733; Winning</span>}
               </div>
             </div>
           </div>
@@ -582,7 +590,7 @@ const GameTable: React.FC<GameTableProps> = ({
               player={op.player}
               position={seatPositions[seatIdx]}
               isCurrentTurn={op.originalIdx === gameState.currentTurnIdx}
-              isLeader={op.originalIdx === gameState.currentLeaderIdx}
+              isLeader={currentTrickWinnerPlayerIdx !== null && op.originalIdx === currentTrickWinnerPlayerIdx}
               handSize={gameState.handSizes[op.player.id] || 0}
               isMe={seatIdx === 0}
               isConnected={!gameState.connectedPlayers || gameState.connectedPlayers.includes(op.player.id)}

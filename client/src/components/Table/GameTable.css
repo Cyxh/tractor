@@ -164,6 +164,12 @@
 .my-leader-badge {
   color: var(--gold);
   font-weight: 600;
+  animation: myBadgeFadeIn 0.3s ease;
+}
+
+@keyframes myBadgeFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 /* Turn indicator on felt table */
@@ -248,6 +254,12 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
+  animation: kittyFadeIn 0.4s ease;
+}
+
+@keyframes kittyFadeIn {
+  from { opacity: 0; transform: translate(-50%, -50%) scale(0.95); }
+  to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
 }
 
 .kitty-pickup-panel {
@@ -255,6 +267,16 @@
   flex-direction: column;
   align-items: center;
   gap: 12px;
+}
+
+/* Fade in for status badges that appear/disappear */
+.table-status {
+  animation: statusFadeIn 0.4s ease;
+}
+
+@keyframes statusFadeIn {
+  from { opacity: 0; transform: translateX(-50%) translateY(8px); }
+  to { opacity: 1; transform: translateX(-50%) translateY(0); }
 }
 
 /* No bid panel */
@@ -372,6 +394,12 @@
   align-items: center;
   justify-content: center;
   z-index: 20;
+  animation: overlayFadeIn 0.4s ease;
+}
+
+@keyframes overlayFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 .round-result, .game-over {
