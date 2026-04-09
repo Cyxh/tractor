@@ -223,6 +223,9 @@ wss.on('connection', (ws: WebSocket) => {
           const username = validateToken(token);
           if (username) {
             playerAccounts.set(playerId, username);
+          } else {
+            // Token expired or invalid — tell client to clear stale auth
+            send({ type: 'auth_invalid', payload: {} });
           }
         }
         break;

@@ -181,6 +181,12 @@ export function useGame(ws: { send: (msg: any) => void; on: (type: string, handl
       ws.on('chat', (payload: ChatMessage) => {
         setChatMessages(prev => [...prev, payload]);
       }),
+      ws.on('auth_invalid', () => {
+        // Server says our token is expired/invalid — clear stale auth
+        setAuthUser(null);
+        setAuthToken(null);
+        clearAuth();
+      }),
       ws.on('error', (payload: { message: string }) => {
         // If we get a room-related error while in a game, the room is gone — reset to lobby
         if (wasInGameRef.current && (payload.message.includes('Room not found') || payload.message.includes('Cannot rejoin'))) {
@@ -279,7 +285,7 @@ export function useGame(ws: { send: (msg: any) => void; on: (type: string, handl
     } catch {
       return { error: 'Network error' };
     }
-  }, [authToken]);
+  }, [authToken, authFetch]);
 
   const getAccountEmail = useCallback(async (): Promise<{ email: string | null; emailVerified: boolean; error?: string }> => {
     if (!authToken) return { email: null, emailVerified: false, error: 'Not logged in' };
@@ -289,7 +295,7 @@ export function useGame(ws: { send: (msg: any) => void; on: (type: string, handl
       if (!res.ok) return { email: null, emailVerified: false, error: data.error };
       return data;
     } catch { return { email: null, emailVerified: false, error: 'Network error' }; }
-  }, [authToken]);
+  }, [authToken, authFetch]);
 
   const requestEmailVerification = useCallback(async (email: string): Promise<{ error?: string }> => {
     if (!authToken) return { error: 'Not logged in' };
@@ -303,7 +309,7 @@ export function useGame(ws: { send: (msg: any) => void; on: (type: string, handl
       if (!res.ok) return { error: data.error || 'Failed' };
       return {};
     } catch { return { error: 'Network error' }; }
-  }, [authToken]);
+  }, [authToken, authFetch]);
 
   const verifyEmail = useCallback(async (code: string): Promise<{ error?: string }> => {
     if (!authToken) return { error: 'Not logged in' };
@@ -317,7 +323,7 @@ export function useGame(ws: { send: (msg: any) => void; on: (type: string, handl
       if (!res.ok) return { error: data.error || 'Failed' };
       return {};
     } catch { return { error: 'Network error' }; }
-  }, [authToken]);
+  }, [authToken, authFetch]);
 
   const unlinkEmail = useCallback(async (): Promise<{ error?: string }> => {
     if (!authToken) return { error: 'Not logged in' };
@@ -329,7 +335,7 @@ export function useGame(ws: { send: (msg: any) => void; on: (type: string, handl
       if (!res.ok) return { error: data.error || 'Failed' };
       return {};
     } catch { return { error: 'Network error' }; }
-  }, [authToken]);
+  }, [authToken, authFetch]);
 
   const fetchStats = useCallback(async () => {
     if (!authToken) return null;
@@ -379,7 +385,7 @@ export function useGame(ws: { send: (msg: any) => void; on: (type: string, handl
     } catch {
       return { error: 'Network error' };
     }
-  }, [authToken]);
+  }, [authToken, authFetch]);
 
   const createRoom = useCallback((name: string) => {
     setPlayerName(name);

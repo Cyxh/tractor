@@ -116,7 +116,7 @@ function loadTokens(): void {
       const now = Date.now();
       for (const [token, entry] of Object.entries(data)) {
         // Skip expired tokens
-        if (now - entry.createdAt <= 24 * 60 * 60 * 1000) {
+        if (now - entry.createdAt <= 30 * 24 * 60 * 60 * 1000) {
           tokens.set(token, entry);
         }
       }
@@ -233,7 +233,7 @@ export function validateToken(token: string): string | null {
   const entry = tokens.get(token);
   if (!entry) return null;
   // Tokens expire after 24 hours
-  if (Date.now() - entry.createdAt > 24 * 60 * 60 * 1000) {
+  if (Date.now() - entry.createdAt > 30 * 24 * 60 * 60 * 1000) {
     tokens.delete(token);
     saveTokens();
     return null;
