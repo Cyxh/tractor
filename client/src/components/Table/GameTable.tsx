@@ -466,17 +466,15 @@ const GameTable: React.FC<GameTableProps> = ({
   const renderCardWrapper = (card: Card, idx: number, isTrumpSection: boolean, globalIdx: number) => {
     const cid = cardId(card);
     const isHovered = hoveredCardIdx === globalIdx;
-    const isDragging = dragIdx === globalIdx;
-    const dragClass = getCardClass(globalIdx, isTrumpSection);
 
     return (
       <div
         key={cid}
         ref={el => { cardWrappersRef.current[globalIdx] = el; }}
-        className={`hand-card-wrapper ${newCardIds.has(cid) ? 'card-deal-in' : ''} ${isHovered && phase !== GamePhase.Drawing ? 'card-hovered' : ''} ${isDragging ? 'card-dragging' : ''} ${dragClass}`}
+        className={`hand-card-wrapper ${newCardIds.has(cid) ? 'card-deal-in' : ''} ${isHovered && phase !== GamePhase.Drawing ? 'card-hovered' : ''}`}
         onMouseEnter={() => { if (phase !== GamePhase.Drawing) setHoveredCardIdx(globalIdx); }}
         onMouseLeave={() => setHoveredCardIdx(null)}
-        onMouseDown={(e) => { if (phase !== GamePhase.Drawing) handleMouseDown(globalIdx, e); }}
+        onClick={() => { if (phase !== GamePhase.Drawing) toggleCard(card); }}
       >
         <CardComponent
           card={card}
@@ -869,8 +867,7 @@ const GameTable: React.FC<GameTableProps> = ({
                   onPlay={handlePlay}
                   onBid={handleBid}
                   onClear={() => setSelectedCards([])}
-                  onReorganize={handleReorganize}
-                  showReorganize={phase !== GamePhase.Drawing}
+                  showReorganize={false}
                 />
               )}
             </>

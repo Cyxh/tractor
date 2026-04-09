@@ -42,6 +42,28 @@ function describePlay(components: TrickComponent[]): string {
   return groups.map(g => g.count > 1 ? `${g.label} x${g.count}` : g.label).join(' + ');
 }
 
+/** Group components by type: tractors, triples, pairs, singles — each type in its own row */
+function groupComponentsByType(components: TrickComponent[]): TrickComponent[][] {
+  const tractors: TrickComponent[] = [];
+  const triples: TrickComponent[] = [];
+  const pairs: TrickComponent[] = [];
+  const singles: TrickComponent[] = [];
+
+  for (const comp of components) {
+    if (comp.length >= 2) tractors.push(comp);
+    else if (comp.groupSize >= 3) triples.push(comp);
+    else if (comp.groupSize === 2) pairs.push(comp);
+    else singles.push(comp);
+  }
+
+  const rows: TrickComponent[][] = [];
+  if (tractors.length > 0) rows.push(tractors);
+  if (triples.length > 0) rows.push(triples);
+  if (pairs.length > 0) rows.push(pairs);
+  if (singles.length > 0) rows.push(singles);
+  return rows;
+}
+
 const TrickArea: React.FC<TrickAreaProps> = ({ currentTrick, players, myIndex, trumpInfo, settings }) => {
   if (!currentTrick || currentTrick.plays.length === 0) {
     return <div className="trick-area" />;
@@ -68,45 +90,36 @@ const TrickArea: React.FC<TrickAreaProps> = ({ currentTrick, players, myIndex, t
     [leadPlay.cards, trumpInfo, settings]
   );
   const leadDescription = useMemo(() => describePlay(leadComponents), [leadComponents]);
-  const showDescription = true;
-
-  // Decompose each play into components for grouped rendering
-  const decomposeForRender = (cards: Card[]): TrickComponent[] => {
-    return decomposePlay(cards, trumpInfo, settings);
-  };
-
-  const totalLeadCards = leadPlay.cards.length;
-  const needsVerticalStack = totalLeadCards > 6;
 
   // Scale cards based on number of cards in the lead play
   const maxCardsInPlay = Math.max(...currentTrick.plays.map(p => p.cards.length), 1);
-  const cardScale = maxCardsInPlay <= 2 ? 1 : maxCardsInPlay <= 4 ? 0.85 : maxCardsInPlay <= 6 ? 0.7 : 0.6;
+  const cardScale = maxCardsInPlay <= 4 ? 1 : maxCardsInPlay <= 6 ? 0.85 : maxCardsInPlay <= 8 ? 0.75 : 0.65;
 
   return (
     <div className="trick-area" style={{ '--trick-card-scale': cardScale } as React.CSSProperties}>
       {/* Lead play description */}
-      {showDescription && (
-        <div className="trick-description">
-          <span className="trick-description-text">{leadDescription}</span>
-        </div>
-      )}
+      <div className="trick-description">
+        <span className="trick-description-text">{leadDescription}</span>
+      </div>
 
       {currentTrick.plays.map((play, i) => {
-        const components = decomposeForRender(play.cards);
+        const components = decomposePlay(play.cards, trumpInfo, settings);
+        const rows = groupComponentsByType(components);
         return (
-          <div
-            key={i}
-            className={`trick-play ${getPlayPosition(play.playerIdx)} ${needsVerticalStack ? 'trick-play-vertical' : ''}`}
-          >
-            <div className={`trick-play-cards ${needsVerticalStack ? 'trick-cards-vertical' : ''}`}>
-              {components.map((comp, ci) => (
-                <div key={ci} className="trick-component-group">
-                  {comp.cards.map((card, j) => (
-                    <div
-                      key={j}
-                      className={`trick-card-wrapper ${j > 0 ? 'trick-card-overlap' : ''}`}
-                    >
-                      <CardComponent card={card} small />
+          <div key={i} className={`trick-play ${getPlayPosition(play.playerIdx)}`}>
+            <div className="trick-play-cards">
+              {rows.map((row, ri) => (
+                <div key={ri} className="trick-component-row">
+                  {row.map((comp, ci) => (
+                    <div key={ci} className="trick-component-group">
+                      {comp.cards.map((card, j) => (
+                        <div
+                          key={j}
+                          className={`trick-card-wrapper ${j > 0 ? 'trick-card-overlap' : ''}`}
+                        >
+                          <CardComponent card={card} />
+                        </div>
+                      ))}
                     </div>
                   ))}
                 </div>

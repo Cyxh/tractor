@@ -1,11 +1,8 @@
 .trick-area {
   position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: clamp(300px, 60vw, 800px);
-  height: clamp(200px, 50vh, 600px);
+  inset: 0;
   pointer-events: none;
+  z-index: 6;
 }
 
 .trick-play {
@@ -29,15 +26,19 @@
 
 .trick-play-cards {
   display: flex;
-  gap: 4px;
+  flex-direction: column;
+  gap: 2px;
+  align-items: center;
   animation: cardSlideIn 0.2s ease;
   transform: scale(var(--trick-card-scale, 1));
   transform-origin: center;
 }
 
-.trick-play-cards.trick-cards-vertical {
-  flex-direction: column;
-  gap: 4px;
+/* Each row holds components of the same type (all tractors, all pairs, etc.) */
+.trick-component-row {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
 }
 
 /* Component group: cards within a component overlap */
@@ -52,7 +53,7 @@
 }
 
 .trick-card-wrapper.trick-card-overlap {
-  margin-left: clamp(-28px, -2.2vw, -18px);
+  margin-left: clamp(-36px, -3vw, -22px);
   z-index: 1;
 }
 
@@ -60,58 +61,60 @@
   box-shadow: -2px 0 4px rgba(0, 0, 0, 0.3);
 }
 
-/* Positions - pushed toward edges near player icons */
+/* ─── Positions: between player icons and the center description ─── */
+
 .trick-bottom {
-  bottom: 0%;
+  bottom: 16%;
   left: 50%;
   transform: translateX(-50%);
 }
 
 .trick-top {
-  top: 0%;
+  top: 20%;
   left: 50%;
   transform: translateX(-50%);
 }
 
 .trick-right {
-  right: 0%;
-  top: 50%;
+  right: 16%;
+  top: 48%;
   transform: translateY(-50%);
 }
 
 .trick-left {
-  left: 0%;
-  top: 50%;
+  left: 16%;
+  top: 48%;
   transform: translateY(-50%);
 }
 
 .trick-bottom-right {
-  bottom: 2%;
-  right: 2%;
+  bottom: 24%;
+  right: 20%;
 }
 
 .trick-bottom-left {
-  bottom: 2%;
-  left: 2%;
+  bottom: 24%;
+  left: 20%;
 }
 
 .trick-top-right {
-  top: 2%;
-  right: 2%;
+  top: 24%;
+  right: 20%;
 }
 
 .trick-top-left {
-  top: 2%;
-  left: 2%;
+  top: 24%;
+  left: 20%;
 }
 
-/* Lead play description text box */
+/* ─── Lead play description text box (center of table) ─── */
+
 .trick-description {
   position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  z-index: 5;
+  z-index: 10;
   pointer-events: none;
 }
 
@@ -132,9 +135,4 @@
 @keyframes descFadeIn {
   from { opacity: 0; transform: translateY(4px); }
   to { opacity: 1; transform: translateY(0); }
-}
-
-/* Vertical stacking for very large plays */
-.trick-play-vertical .trick-cards-vertical .trick-component-group {
-  justify-content: center;
 }
