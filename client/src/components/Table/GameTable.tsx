@@ -53,6 +53,7 @@ const GameTable: React.FC<GameTableProps> = ({
   const [showVoteOverlay, setShowVoteOverlay] = useState(false);
   const [voteOverlayFading, setVoteOverlayFading] = useState(false);
   const prevPhaseRef = useRef<GamePhase | null>(null);
+  const phase = gameState.phase;
 
   useEffect(() => {
     const isNoBid = phase === GamePhase.NoBidKittySelection;
@@ -453,7 +454,6 @@ const GameTable: React.FC<GameTableProps> = ({
 
   const isMyTurn = gameState.currentTurnIdx === gameState.myIndex;
   const isLeader = gameState.currentLeaderIdx === gameState.myIndex;
-  const phase = gameState.phase;
   const myPlayer = gameState.players[gameState.myIndex];
   const myId = myPlayer?.id;
 
