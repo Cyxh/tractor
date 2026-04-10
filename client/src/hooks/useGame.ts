@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { PlayerView, Card, GameSettings, FriendDeclaration, ChatMessage } from 'tractor-shared';
 
+const API_BASE = import.meta.env.BASE_URL.replace(/\/$/, '');
+
 interface RoomInfo {
   players: { id: string; name: string; connected?: boolean }[];
   spectators?: { id: string; name: string }[];
@@ -131,7 +133,7 @@ export function useGame(ws: { send: (msg: any) => void; on: (type: string, handl
 
     // Otherwise try account-based session
     if (authToken) {
-      fetch('/api/me', { headers: { Authorization: `Bearer ${authToken}` } })
+      fetch(`${API_BASE}/api/me`, { headers: { Authorization: `Bearer ${authToken}` } })
         .then(r => r.ok ? r.json() : null)
         .then(data => {
           if (data?.session?.roomId && data?.session?.playerName) {
@@ -207,7 +209,7 @@ export function useGame(ws: { send: (msg: any) => void; on: (type: string, handl
 
   const authLogin = useCallback(async (username: string, password: string): Promise<{ error?: string }> => {
     try {
-      const res = await fetch('/api/login', {
+      const res = await fetch(`${API_BASE}/api/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password }),
@@ -232,7 +234,7 @@ export function useGame(ws: { send: (msg: any) => void; on: (type: string, handl
 
   const authRegister = useCallback(async (username: string, password: string): Promise<{ error?: string }> => {
     try {
-      const res = await fetch('/api/register', {
+      const res = await fetch(`${API_BASE}/api/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password }),
@@ -257,7 +259,7 @@ export function useGame(ws: { send: (msg: any) => void; on: (type: string, handl
 
   // Helper for authenticated fetch — auto-logout on expired token
   const authFetch = useCallback(async (url: string, options: RequestInit = {}): Promise<Response> => {
-    const res = await fetch(url, {
+    const res = await fetch(`${API_BASE}${url}`, {
       ...options,
       headers: { ...options.headers as Record<string, string>, Authorization: `Bearer ${authToken}` },
     });
@@ -348,7 +350,7 @@ export function useGame(ws: { send: (msg: any) => void; on: (type: string, handl
 
   const requestPasswordReset = useCallback(async (email: string): Promise<{ error?: string }> => {
     try {
-      const res = await fetch('/api/request-password-reset', {
+      const res = await fetch(`${API_BASE}/api/request-password-reset`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email }),
@@ -360,7 +362,7 @@ export function useGame(ws: { send: (msg: any) => void; on: (type: string, handl
 
   const resetPassword = useCallback(async (email: string, code: string, newPassword: string): Promise<{ error?: string }> => {
     try {
-      const res = await fetch('/api/reset-password', {
+      const res = await fetch(`${API_BASE}/api/reset-password`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, code, newPassword }),
