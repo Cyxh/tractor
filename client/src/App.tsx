@@ -162,6 +162,9 @@ const App: React.FC = () => {
       (prev === 'room' && target === 'game') ||
       (prev === 'connecting' && target === 'lobby');
 
+    // Enter-only transitions (no exit animation, just fade in the new screen)
+    const enterOnly = (prev === 'game' && target === 'lobby');
+
     if (shouldAnimate) {
       // Use the last valid room data for the exit animation
       if (prev === 'room' && lastRoomData.current) {
@@ -178,6 +181,13 @@ const App: React.FC = () => {
         return () => clearTimeout(enterTimer);
       }, 400);
       return () => clearTimeout(exitTimer);
+    } else if (enterOnly) {
+      setDisplayedScreen(target);
+      setTransitionPhase('in');
+      const enterTimer = setTimeout(() => {
+        setTransitionPhase(null);
+      }, 500);
+      return () => clearTimeout(enterTimer);
     } else {
       setDisplayedScreen(target);
       setTransitionPhase(null);
@@ -197,7 +207,7 @@ const App: React.FC = () => {
       <span className="site-footer-left">
         If you liked this, consider buying Revin a boba — <a href="https://account.venmo.com/u/revinjun" target="_blank" rel="noopener noreferrer">@revinjun</a> on Venmo
       </span>
-      <span className="site-footer-right">Beta Version 1.2.22</span>
+      <span className="site-footer-right">Beta Version 1.2.23</span>
     </div>
   ) : null;
 
@@ -243,11 +253,12 @@ const App: React.FC = () => {
   }
 
   if (displayedScreen === 'room') {
-    // Use live data if available, otherwise use snapshot during exit animation
-    const roomId = game.roomId || roomSnapshot.current?.roomId;
-    const playerId = game.playerId || roomSnapshot.current?.playerId;
-    const roomInfo = game.roomInfo || roomSnapshot.current?.roomInfo;
-    const chatMsgs = game.chatMessages.length > 0 ? game.chatMessages : (roomSnapshot.current?.chatMessages || []);
+    // Use live data if available, otherwise use snapshot (or last valid data) during exit animation
+    const snap = roomSnapshot.current || lastRoomData.current;
+    const roomId = game.roomId || snap?.roomId;
+    const playerId = game.playerId || snap?.playerId;
+    const roomInfo = game.roomInfo || snap?.roomInfo;
+    const chatMsgs = game.chatMessages.length > 0 ? game.chatMessages : (snap?.chatMessages || []);
 
     if (roomId && playerId && roomInfo) {
       return (

@@ -213,16 +213,17 @@ const LobbyScreen: React.FC<LobbyScreenProps> = ({
   }, [displayedPanel, panelPhase, displayedRooms.length]);
 
   const renderFloatingCard = (c: typeof floatingCards[number]) => {
+    // Depth: smaller cards go behind bigger ones
+    const fcStyle = {
+      left: c.left, animationDelay: c.delay, animationDuration: c.duration,
+      '--start-rotate': `${c.startRotate}deg`, '--end-rotate': `${c.endRotate}deg`, '--fc-scale': c.size,
+      zIndex: Math.round(c.size * 10),
+    } as React.CSSProperties;
+
     // Card back
     if (c.isBack) {
       return (
-        <div key={c.id}
-          className="fc"
-          style={{
-            left: c.left, animationDelay: c.delay, animationDuration: c.duration,
-            '--start-rotate': `${c.startRotate}deg`, '--end-rotate': `${c.endRotate}deg`, '--fc-scale': c.size,
-          } as React.CSSProperties}
-        >
+        <div key={c.id} className="fc" style={fcStyle}>
           <div className="fc-inner fc-back">
             <div className="fc-back-pattern" />
           </div>
@@ -233,13 +234,7 @@ const LobbyScreen: React.FC<LobbyScreenProps> = ({
     // Joker
     if (c.isJoker) {
       return (
-        <div key={c.id}
-          className="fc"
-          style={{
-            left: c.left, animationDelay: c.delay, animationDuration: c.duration,
-            '--start-rotate': `${c.startRotate}deg`, '--end-rotate': `${c.endRotate}deg`, '--fc-scale': c.size,
-          } as React.CSSProperties}
-        >
+        <div key={c.id} className="fc" style={fcStyle}>
           <div className={`fc-inner fc-joker ${c.isBigJoker ? 'fc-joker-big' : 'fc-joker-little'}`}>
             <span className="fc-joker-star">{c.isBigJoker ? '\u2605' : '\u2606'}</span>
           </div>
@@ -251,13 +246,7 @@ const LobbyScreen: React.FC<LobbyScreenProps> = ({
     const colorCls = c.isRed ? 'fc-red' : 'fc-black';
 
     return (
-      <div key={c.id}
-        className="fc"
-        style={{
-          left: c.left, animationDelay: c.delay, animationDuration: c.duration,
-          '--start-rotate': `${c.startRotate}deg`, '--end-rotate': `${c.endRotate}deg`, '--fc-scale': c.size,
-        } as React.CSSProperties}
-      >
+      <div key={c.id} className="fc" style={fcStyle}>
         <div className={`fc-inner fc-face ${colorCls}`}>
           {/* Corners */}
           <div className="fc-corner fc-corner-tl">
