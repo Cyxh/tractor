@@ -402,6 +402,15 @@
   to { opacity: 1; }
 }
 
+.table-overlay.overlay-fade-out {
+  animation: overlayFadeOut 0.4s ease forwards;
+}
+
+@keyframes overlayFadeOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
 .round-result, .game-over {
   background: var(--bg-medium);
   border-radius: 16px;
@@ -895,4 +904,197 @@
 @keyframes trickBadgePop {
   from { opacity: 0; transform: scale(0.8); }
   to { opacity: 1; transform: scale(1); }
+}
+
+/* ===== MOBILE TOGGLE BUTTONS ===== */
+/* Hidden on desktop */
+.mobile-toggle {
+  display: none;
+}
+
+.mobile-sidebar-backdrop {
+  display: none;
+}
+
+/* ===== MOBILE LAYOUT ===== */
+@media (max-width: 768px) {
+  .game-table-container {
+    height: 100vh;
+    height: 100dvh;
+  }
+
+  /* Hide sidebars by default */
+  .table-sidebar,
+  .chat-sidebar {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    z-index: 50;
+    width: 260px;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+  }
+
+  .table-sidebar {
+    left: 0;
+  }
+
+  .chat-sidebar {
+    left: auto;
+    right: 0;
+    transform: translateX(100%);
+  }
+
+  .table-sidebar.sidebar-open,
+  .chat-sidebar.sidebar-open {
+    transform: translateX(0);
+  }
+
+  /* Backdrop when sidebar is open */
+  .mobile-sidebar-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 40;
+  }
+
+  /* Toggle buttons */
+  .mobile-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: fixed;
+    top: 8px;
+    z-index: 55;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.6);
+    color: var(--text);
+    font-size: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(8px);
+  }
+
+  .mobile-toggle-left {
+    left: 8px;
+  }
+
+  .mobile-toggle-right {
+    right: 8px;
+    font-size: 14px;
+  }
+
+  /* Felt table takes full width */
+  .table-area {
+    width: 100%;
+  }
+
+  /* Reduce my-player-info for mobile */
+  .my-player-info {
+    padding: 4px 10px;
+    gap: 6px;
+    bottom: 2%;
+  }
+
+  .my-avatar {
+    width: 32px;
+    height: 32px;
+    font-size: 14px;
+  }
+
+  /* Hand area adjustments */
+  .hand-resize-handle {
+    display: none;
+  }
+
+  .hand-cards {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    justify-content: flex-start;
+    padding: 12px 8px 8px;
+    scrollbar-width: none;
+  }
+
+  .hand-cards::-webkit-scrollbar {
+    display: none;
+  }
+
+  .hand-card-wrapper:not(:first-child) {
+    margin-left: -24px;
+  }
+
+  .hand-scale-wrapper {
+    padding: 2px 4px;
+  }
+
+  /* Overlay panels */
+  .no-bid-panel,
+  .ready-panel,
+  .round-result,
+  .game-over {
+    padding: 20px 16px;
+    max-width: 90vw;
+  }
+
+  .no-bid-panel h2,
+  .ready-panel h2 {
+    font-size: 18px;
+  }
+
+  /* Action bar */
+  .action-bar {
+    padding: 4px 0 8px;
+    gap: 6px;
+  }
+
+  .action-bar .btn {
+    padding: 8px 14px;
+    font-size: 12px;
+  }
+
+  /* Trump category section */
+  .trump-category-section {
+    padding: 12px 8px 8px;
+    gap: 8px;
+  }
+
+  /* Error toast - above hand */
+  .error-toast {
+    bottom: 120px;
+    font-size: 12px;
+    padding: 8px 28px 8px 16px;
+    max-width: 90vw;
+  }
+
+  /* Kitty discard header */
+  .kitty-discard-header {
+    padding: 2px 8px 4px;
+  }
+
+  /* Trick winner badge */
+  .trick-winner-badge {
+    padding: 6px 14px;
+    font-size: 13px;
+    gap: 6px;
+  }
+
+  /* Friend declaration - wrap on mobile */
+  .friend-row-input {
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+
+  .friend-select {
+    min-width: 0;
+    flex: 1 1 auto;
+    font-size: 12px;
+    padding: 5px 6px;
+  }
+
+  .friend-ordinal {
+    min-width: auto;
+    font-size: 12px;
+  }
 }

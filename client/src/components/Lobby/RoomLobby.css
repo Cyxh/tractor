@@ -264,3 +264,34 @@
 .spectator-name {
   color: var(--text);
 }
+
+/* ===== MOBILE ===== */
+@media (max-width: 768px) {
+  .room-lobby {
+    min-height: 100vh;
+    min-height: 100dvh;
+  }
+
+  .room-lobby-content {
+    padding: 12px;
+  }
+
+  .room-lobby-header {
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .room-lobby-body {
+    grid-template-columns: 1fr;
+  }
+
+  .room-code-value {
+    font-size: 22px;
+  }
+
+  .room-players-panel,
+  .room-settings-panel {
+    padding: 16px;
+  }
+}

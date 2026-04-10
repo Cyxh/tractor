@@ -231,3 +231,11 @@
   0%, 100% { opacity: 0.5; }
   50% { opacity: 1; }
 }
+
+/* ===== MOBILE ===== */
+@media (max-width: 768px) {
+  .connecting-screen {
+    height: 100vh;
+    height: 100dvh;
+  }
+}

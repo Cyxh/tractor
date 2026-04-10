@@ -122,3 +122,23 @@ input, select {
 .site-footer-left, .site-footer-right {
   pointer-events: auto;
 }
+
+/* ===== MOBILE ===== */
+@media (max-width: 768px) {
+  :root {
+    --card-w: clamp(40px, 12vw, 56px);
+    --card-h: clamp(58px, 17vw, 80px);
+    --card-w-sm: clamp(30px, 8vw, 42px);
+    --card-h-sm: clamp(44px, 12vw, 60px);
+    --font-xs: 10px;
+    --font-sm: 12px;
+    --font-md: 14px;
+    --font-lg: 16px;
+    --font-xl: 22px;
+  }
+
+  .site-footer {
+    font-size: 10px;
+    padding: 6px 12px;
+  }
+}

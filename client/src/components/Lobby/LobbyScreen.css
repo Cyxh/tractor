@@ -787,3 +787,29 @@
   }
 }
 
+/* ===== MOBILE ===== */
+@media (max-width: 768px) {
+  .lobby-screen {
+    min-height: 100vh;
+    min-height: 100dvh;
+    padding-bottom: 30px;
+  }
+
+  .lobby-content {
+    max-width: 100%;
+    padding: 16px;
+  }
+
+  .lobby-title {
+    font-size: 32px;
+  }
+
+  .lobby-card {
+    padding: 20px 16px;
+  }
+
+  .floating-cards-layer {
+    opacity: 0.4;
+  }
+}
+

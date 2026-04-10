@@ -49,6 +49,36 @@ const GameTable: React.FC<GameTableProps> = ({
   const [cardOrder, setCardOrder] = useState<Card[]>([]);
   const [hasManualOrder, setHasManualOrder] = useState(false);
 
+  // Vote overlay fade-out state
+  const [showVoteOverlay, setShowVoteOverlay] = useState(false);
+  const [voteOverlayFading, setVoteOverlayFading] = useState(false);
+  const prevPhaseRef = useRef<GamePhase | null>(null);
+
+  useEffect(() => {
+    const isNoBid = phase === GamePhase.NoBidKittySelection;
+    const wasNoBid = prevPhaseRef.current === GamePhase.NoBidKittySelection;
+
+    if (isNoBid && !showVoteOverlay) {
+      setShowVoteOverlay(true);
+      setVoteOverlayFading(false);
+    } else if (!isNoBid && wasNoBid && showVoteOverlay) {
+      setVoteOverlayFading(true);
+      const timer = setTimeout(() => {
+        setShowVoteOverlay(false);
+        setVoteOverlayFading(false);
+      }, 400);
+      return () => clearTimeout(timer);
+    } else if (!isNoBid && !wasNoBid) {
+      setShowVoteOverlay(false);
+    }
+
+    prevPhaseRef.current = phase;
+  }, [phase, showVoteOverlay]);
+
+  // Mobile sidebar toggles
+  const [showLeftSidebar, setShowLeftSidebar] = useState(false);
+  const [showRightSidebar, setShowRightSidebar] = useState(false);
+
   // Trick completion delay state
   const [completedTrick, setCompletedTrick] = useState<Trick | null>(null);
   const [trickWinnerIdx, setTrickWinnerIdx] = useState<number | null>(null);
@@ -502,8 +532,19 @@ const GameTable: React.FC<GameTableProps> = ({
 
   return (
     <div className="game-table-container">
+      {/* Mobile toggle buttons */}
+      <button className="mobile-toggle mobile-toggle-left" onClick={() => { setShowLeftSidebar(v => !v); setShowRightSidebar(false); }} aria-label="Toggle info panel">
+        {showLeftSidebar ? '\u2716' : '\u2630'}
+      </button>
+      <button className="mobile-toggle mobile-toggle-right" onClick={() => { setShowRightSidebar(v => !v); setShowLeftSidebar(false); }} aria-label="Toggle chat">
+        {showRightSidebar ? '\u2716' : '\uD83D\uDCAC'}
+      </button>
+      {(showLeftSidebar || showRightSidebar) && (
+        <div className="mobile-sidebar-backdrop" onClick={() => { setShowLeftSidebar(false); setShowRightSidebar(false); }} />
+      )}
+
       {/* Score and info panel */}
-      <div className="table-sidebar">
+      <div className={`table-sidebar ${showLeftSidebar ? 'sidebar-open' : ''}`}>
         {onLeave && (
           <button className="btn btn-secondary btn-leave-game" onClick={onLeave}>
             Leave Room
@@ -639,8 +680,8 @@ const GameTable: React.FC<GameTableProps> = ({
             </div>
           )}
 
-          {phase === GamePhase.NoBidKittySelection && (
-            <div className="table-overlay">
+          {showVoteOverlay && (
+            <div className={`table-overlay ${voteOverlayFading ? 'overlay-fade-out' : ''}`}>
               <div className="no-bid-panel">
                 <h2>No Bids Made</h2>
                 <p className="no-bid-desc">
@@ -885,7 +926,7 @@ const GameTable: React.FC<GameTableProps> = ({
       </div>
 
       {/* Chat sidebar */}
-      <div className="chat-sidebar">
+      <div className={`chat-sidebar ${showRightSidebar ? 'sidebar-open' : ''}`}>
         <ChatPanel messages={chatMessages} onSend={onSendChat} compact />
       </div>
 
