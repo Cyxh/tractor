@@ -226,29 +226,7 @@ const LobbyScreen: React.FC<LobbyScreenProps> = ({
     requestAnimationFrame(measure);
   }, [displayedPanel, panelPhase, displayedRooms.length]);
 
-  // Exploding cards state
-  const [explodedCards, setExplodedCards] = useState<Set<number>>(new Set());
-  const [explosions, setExplosions] = useState<{ id: number; x: number; y: number; fragments: { dx: number; dy: number; rot: number; size: number; hue: number }[] }[]>([]);
-
-  const handleCardExplode = (cardId: number, e: React.MouseEvent) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = rect.left + rect.width / 2;
-    const y = rect.top + rect.height / 2;
-    setExplodedCards(prev => { const s = new Set(prev); s.add(cardId); return s; });
-    const fragments = Array.from({ length: 10 }, () => ({
-      dx: (Math.random() - 0.5) * 260,
-      dy: (Math.random() - 0.5) * 260,
-      rot: Math.random() * 720 - 360,
-      size: 6 + Math.random() * 12,
-      hue: Math.random() * 50 + 20,
-    }));
-    setExplosions(prev => [...prev, { id: cardId, x, y, fragments }]);
-    setTimeout(() => setExplosions(prev => prev.filter(p => p.id !== cardId)), 700);
-  };
-
   const renderFloatingCard = (c: typeof floatingCards[number]) => {
-    if (explodedCards.has(c.id)) return null;
-
     // Depth: smaller cards go behind bigger ones
     const fcStyle = {
       left: c.left, animationDelay: c.delay, animationDuration: c.duration,
@@ -256,12 +234,10 @@ const LobbyScreen: React.FC<LobbyScreenProps> = ({
       zIndex: Math.round(c.size * 10),
     } as React.CSSProperties;
 
-    const onClick = (e: React.MouseEvent) => handleCardExplode(c.id, e);
-
     // Card back
     if (c.isBack) {
       return (
-        <div key={c.id} className="fc" style={fcStyle} onClick={onClick}>
+        <div key={c.id} className="fc" style={fcStyle}>
           <div className="fc-inner fc-back">
             <div className="fc-back-pattern" />
           </div>
@@ -272,7 +248,7 @@ const LobbyScreen: React.FC<LobbyScreenProps> = ({
     // Joker
     if (c.isJoker) {
       return (
-        <div key={c.id} className="fc" style={fcStyle} onClick={onClick}>
+        <div key={c.id} className="fc" style={fcStyle}>
           <div className={`fc-inner fc-joker ${c.isBigJoker ? 'fc-joker-big' : 'fc-joker-little'}`}>
             <span className="fc-joker-star">{c.isBigJoker ? '\u2605' : '\u2606'}</span>
           </div>
@@ -284,7 +260,7 @@ const LobbyScreen: React.FC<LobbyScreenProps> = ({
     const colorCls = c.isRed ? 'fc-red' : 'fc-black';
 
     return (
-      <div key={c.id} className="fc" style={fcStyle} onClick={onClick}>
+      <div key={c.id} className="fc" style={fcStyle}>
         <div className={`fc-inner fc-face ${colorCls}`}>
           {/* Corners */}
           <div className="fc-corner fc-corner-tl">
@@ -323,20 +299,9 @@ const LobbyScreen: React.FC<LobbyScreenProps> = ({
     <>
       <div className="lobby-bg" />
       <div className="lobby-vignette" />
-      <div className="floating-cards-layer">
+      <div className="floating-cards-layer" aria-hidden>
         {floatingCards.map(renderFloatingCard)}
       </div>
-      {explosions.map(exp => (
-        <div key={exp.id} className="fc-explosion" style={{ left: exp.x, top: exp.y }} aria-hidden>
-          {exp.fragments.map((f, i) => (
-            <div key={i} className="fc-fragment" style={{
-              '--frag-dx': `${f.dx}px`, '--frag-dy': `${f.dy}px`, '--frag-rot': `${f.rot}deg`,
-              width: f.size, height: f.size,
-              background: `hsl(${f.hue}, 80%, 60%)`,
-            } as React.CSSProperties} />
-          ))}
-        </div>
-      ))}
       <div className="lobby-sparkles" aria-hidden>
         {sparkles.map(s => (
           <div

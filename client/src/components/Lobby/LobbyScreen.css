@@ -49,37 +49,6 @@
   bottom: -120px;
   animation: card-float linear infinite;
   transform-origin: center;
-  pointer-events: auto;
-  cursor: pointer;
-}
-
-.fc:hover .fc-inner {
-  filter: brightness(0.7) blur(calc((1 - var(--fc-scale, 0.7)) * 2px));
-  transition: filter 0.15s ease;
-}
-
-/* Explosion container */
-.fc-explosion {
-  position: fixed;
-  z-index: 100;
-  pointer-events: none;
-}
-
-.fc-fragment {
-  position: absolute;
-  border-radius: 2px;
-  animation: fc-frag-fly 0.6s cubic-bezier(0.2, 0, 0.2, 1) forwards;
-}
-
-@keyframes fc-frag-fly {
-  0% {
-    transform: translate(0, 0) rotate(0deg) scale(1);
-    opacity: 1;
-  }
-  100% {
-    transform: translate(var(--frag-dx), var(--frag-dy)) rotate(var(--frag-rot)) scale(0);
-    opacity: 0;
-  }
 }
 
 @keyframes card-float {
