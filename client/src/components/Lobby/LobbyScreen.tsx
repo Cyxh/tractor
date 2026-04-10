@@ -78,26 +78,40 @@ const LobbyScreen: React.FC<LobbyScreenProps> = ({
       left: string; delay: string; duration: string; size: number; startRotate: number; endRotate: number;
     }[] = [];
 
-    for (let i = 0; i < 22; i++) {
-      const isBack = i >= 19;
-      const isJoker = i === 17 || i === 18;
-      const isBigJoker = i === 17;
-      const suitIdx = i % 4;
-      const rankIdx = i % 13;
+    // Build a shuffled mini-deck: 2 jokers + 3 backs + 17 random suited cards
+    const pool: { isJoker: boolean; isBigJoker: boolean; isBack: boolean; suitIdx: number; rankIdx: number }[] = [];
+    pool.push({ isJoker: true, isBigJoker: true, isBack: false, suitIdx: 0, rankIdx: 0 });
+    pool.push({ isJoker: true, isBigJoker: false, isBack: false, suitIdx: 0, rankIdx: 0 });
+    for (let i = 0; i < 3; i++) pool.push({ isJoker: false, isBigJoker: false, isBack: true, suitIdx: 0, rankIdx: 0 });
+    for (let i = 0; i < 17; i++) {
+      pool.push({
+        isJoker: false, isBigJoker: false, isBack: false,
+        suitIdx: Math.floor(Math.random() * 4),
+        rankIdx: Math.floor(Math.random() * 13),
+      });
+    }
+    // Fisher-Yates shuffle
+    for (let i = pool.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [pool[i], pool[j]] = [pool[j], pool[i]];
+    }
+
+    for (let i = 0; i < pool.length; i++) {
+      const p = pool[i];
       cards.push({
         id: i,
-        suit: suits[suitIdx],
-        rank: ranks[rankIdx],
-        isRed: suitIdx === 1 || suitIdx === 2,
-        isFace: !isJoker && !isBack && (rankIdx >= 10), // J=10, Q=11, K=12
-        isAce: !isJoker && !isBack && rankIdx === 0,
-        isJoker, isBigJoker, isBack,
-        left: `${(i * 4.7 + 1) % 98}%`,
-        delay: `${i * -1.5}s`,
-        duration: `${20 + (i % 7) * 3}s`,
-        size: 0.7 + (i % 4) * 0.1,
-        startRotate: (i * 31) % 40 - 20,
-        endRotate: (i % 2 === 0 ? 1 : -1) * (30 + (i * 17) % 50),
+        suit: suits[p.suitIdx],
+        rank: ranks[p.rankIdx],
+        isRed: p.suitIdx === 1 || p.suitIdx === 2,
+        isFace: !p.isJoker && !p.isBack && (p.rankIdx >= 10),
+        isAce: !p.isJoker && !p.isBack && p.rankIdx === 0,
+        isJoker: p.isJoker, isBigJoker: p.isBigJoker, isBack: p.isBack,
+        left: `${Math.random() * 94 + 3}%`,
+        delay: `${-Math.random() * 30}s`,
+        duration: `${18 + Math.random() * 12}s`,
+        size: 0.7 + Math.random() * 0.3,
+        startRotate: Math.random() * 40 - 20,
+        endRotate: (Math.random() < 0.5 ? 1 : -1) * (20 + Math.random() * 60),
       });
     }
     return cards;
